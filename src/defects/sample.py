@@ -13,18 +13,21 @@ def getvalue_modelornumber(value, model, extension, **kwargs):
     Tests if the provded value is a float or numpy array. If it is not,
     it assumes it is a points to a value and attempts to retrieve that values by model.extension()
 
-    inputs:
-        value:
-            the value to test
-        model:
-            the model to use if the value is a string
-        extension:
-            the function of the model to be called to find the desribed value
-        kwargs: (optional)
-            Values to be passed to the model's extension
+    Parameters
+    ----------
+    value :
+        the value to test
+    model :
+        the model to use if the value is a string
+    extension :
+        the function of the model to be called to find the desribed value
+    kwargs : (optional)
+        Values to be passed to the model's extension
 
-    output:
-        value
+    Returns
+    -------
+    value :
+        some value
     '''
     if isinstance(value, numbers.Number):
         value = value
@@ -117,6 +120,7 @@ class Sample():
 
     @property
     def temp(self):
+        '''The sample temperature in kelvin'''
         return self._temp
 
     @temp.setter
@@ -130,7 +134,11 @@ class Sample():
     @property
     def dopant_type(self):
         '''
-        returns the dopant type
+        The sample's dopant type
+
+        it can be:
+            1. 'p' or 'p-type' for p-type
+            2. 'n' or 'n-type' for n-type
         '''
         return self._dopant_type
 
@@ -151,7 +159,7 @@ class Sample():
     @property
     def doping(self):
         '''
-        Returns the number of net dopants. This is not the ionised dopants
+        The number of dopants. This is not the ionised dopants
         '''
         if self._Nacc is None or self._Ndon is None:
             _doping = self._doping
@@ -182,7 +190,7 @@ class Sample():
     @property
     def Nacc(self):
         '''
-        returns the number of acceptor dopant atoms
+        The concentration of acceptor dopant atoms
         '''
         return self._Nacc
 
@@ -209,7 +217,7 @@ class Sample():
     @property
     def Ndon(self):
         '''
-        returns the number of donor dopant atoms
+        The concentration of donor dopant atoms
         '''
         return self._Ndon
 
@@ -269,7 +277,9 @@ class Sample():
 
     @property
     def ni(self):
-
+        '''
+        The sample's intrinsic carrier density. If this is not provided it will be calculated.
+        '''
         model = IntrinsicCarrierDensity(
             material='Si', temp=self.temp,
         )
@@ -285,6 +295,9 @@ class Sample():
 
     @property
     def ni_eff(self):
+        '''
+        Currently not impimented and just returns the intrinsic carrier density.
+        '''
         # model = BandGapNarrowing(
         #     material='Si',
         #     temp=self.temp,
@@ -293,7 +306,7 @@ class Sample():
         #     Nd=self.Nd,
         # )
         # return getvalue_modelornumber(self._nieff, model, 'ni_eff', ni=self.ni,
-                                    #   author=self._nieff)
+        #   author=self._nieff)
         return self.ni
 
     @ni_eff.setter
@@ -302,14 +315,19 @@ class Sample():
 
     @property
     def Vt(self):
+        'The thermal voltage'
         return self.temp * C.k / C.e
 
     def equlibrium_concentrations(self):
         '''
         Calculate the equlibrium carrier concentration
 
-        returns:
-            ne0, nh0
+        Returns
+        -------
+        ne0 : float
+            the free electron concentration in the dark
+        nh0 : float
+            the free hole concentration in the dark
         '''
         def charges(majoirty_carrier):
             if self.Nacc > self.Ndon:
@@ -353,12 +371,18 @@ class Sample():
 
         This assumes a constant intrinsic carrier density.
 
-        inputs:
-            nxc: (float)
-                the number of excess carrier densities
+        Parameters
+        ----------
+        nxc : float
+            the number of excess carrier densities
 
-        returns:
-            ne0, nh0
+        Returns
+        -------
+        ne0 : float
+            the free electron concentration
+        nh0 : float
+            the free hole concentration
+
         '''
         def charges(mj):
             '''

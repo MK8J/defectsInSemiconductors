@@ -10,30 +10,33 @@ def transient_decay(s, nxc, t_stepf=500, t_stepNo=1000, auto=True, nxc_min=1e8, 
     '''
     calculates a transient decay from an inital steady state condition.
 
-    inputs:
-        s: (sample class)
-        nxc: (float)
-            The steady state number of excess carrier from which the decay states
-        t_stepf: (numebr, optional)
-            The step size of the numerical solution compared to the lowest of the SRH and radiative Lifetime
-        t_stopNo: (number, optional)
-            The number of time steps to take
-        auto: (bool)
-            If this is true, the simulation step size and number of steps will be increased until a desired excess carrier density is reached.
-        nxc_min: (float, default=1e8)
-            The excess carrier density at which the transient simulatulation should true and stop. This only has an impact if auto is set to true
-        G_ss: (float, default = 0)
-            Allows for a transient decay to a fixed generation rate.
+    Parameters
+    ----------
+    s : (sample class)
+        the sample class
+    nxc : (float)
+        The steady state number of excess carrier from which the decay states
+    t_stepf : (numebr, optional)
+        The step size of the numerical solution compared to the lowest of the SRH and radiative Lifetime
+    t_stopNo : (number, optional)
+        The number of time steps to take
+    auto : (bool)
+        If this is true, the simulation step size and number of steps will be increased until a desired excess carrier density is reached.
+    nxc_min : (float, default=1e8)
+        The excess carrier density at which the transient simulatulation should true and stop. This only has an impact if auto is set to true
+    G_ss : (float, default = 0)
+        Allows for a transient decay to a fixed generation rate.
 
-    outputs:
-        ne: (array like)
-            concentration of electrons
-        nh: (array like)
-            concentration of holes
-        nd: (array like)
-            concentration of defect/defect states
-        t: (array like)
-            time.
+    Returns
+    -------
+    ne : (array like)
+        concentration of electrons
+    nh : (array like)
+        concentration of holes
+    nd : (array like)
+        concentration of defect/defect states
+    t : (array like)
+        time.
     '''
     assert type(auto) == bool
 
@@ -96,35 +99,40 @@ def steadyState(s, nxc, plot_carriers=True,   plot_lifetime=True):
     '''
     Calculates the steady state lifetime of a sample, give a specific defect.
 
-    inputs:
-        s: (class)
-            the sample class
-        nxc: (array like)
-            The excess carrier density to be evaluated
-        plot_carriers: (bool default  True)
-            determines if the function automatically plots the carriers with time
-        plot_lifetime: (bool default  True)
-            determines if the function automatically plots the lifetime as a function of excess carriers
+    Parameters
+    ----------
+    s : (class)
+        the sample class
+    nxc : (array like)
+        The excess carrier density to be evaluated
+    plot_carriers : (bool default  True)
+        determines if the function automatically plots the carriers with time
+    plot_lifetime : (bool default  True)
+        determines if the function automatically plots the lifetime as a function of excess carriers
 
-    returns:
-        gen: (numpy array, in cm^-3)
-            generation rate required to obtain the excess carrier density
-        tau: (numpy array, in seconds)
-            the minoirty carrier lifetime
+    Returns
+    -------
+    gen : (numpy array, in cm^-3)
+        generation rate required to obtain the excess carrier density
+    tau : (numpy array, in seconds)
+        the minoirty carrier lifetime
 
-    An example:
+    Examples
+    --------
 
     define a defect
+
     >>> defect = dict(Ed=[0, -0.35], sigma_e=[3e-14, 1e-16], sigma_h=[3e-15, 1e-15], charge=[[0, -1], [0, 1]], Nd=1e12)
 
     define the sample properties
+
     >>> s = Sample()
     >>> s.tau_rad = 1 # a constant bulk lifetime in seconds
     >>> s.Nacc = 0 # number acceptors in cm^-3
     >>> s.Ndon = 1e16 # number donors in cm^-3
     >>> s.temp = 300 # the sample temperature
 
-This  can be also used with the single level defect class, but here we are just showing the multi level defect
+    This  can be also used with the single level defect class, but here we are just showing the multi level defect
 
     >>> s.defectlist = MultiLevelDefect(Ed=defect['Ed'], sigma_e=defect['sigma_e'], sigma_h=defect['sigma_h'], Nd=defect['Nd'], charge=defect['charge'])
 
@@ -200,36 +208,31 @@ def squareWavePulse(s, t_stepf=500, t_stepNo=1000, Gss=1e20, plot_carriers=True,
 
     This is basiccally a wrapper around trans_multilevel(), to make this specific simulations easier.
 
-    inputs:
-        defect: dic of defect details. e.g.
+    Parameters
+    ----------
+    s : class
+        the sample class
+    t_stepf : (float, defualt 500, uniltess)
+        The time step taking in ht numerical simulations. It is the ratio to the minoirty carrier Lifetime
+    t_stepNo : (float, default=1000, unitless)
+        The number of time steps taken
+    Gss : (float, defualy=1e20, photons)
+        the illumination intensity.
+    plot_carriers : (bool, default=True)
+        creats a plot of the carriers with time
+    plot_lifeimte : (bool, default=True)
+        creates a plot of lifetime
 
-            defect_Fe = dict(Ed = [-1.12/2+0.38],
-                         sigma_e=[4e-14],
-                         sigma_h=[
-                             3.9e-16 * np.exp(-0.045/1.38e-23/300*1.6e-19)]
-                         Nd=1e13
-                         )
-        s: sample class
-        t_stepf: (float, defualt 500, uniltess)
-            The time step taking in ht numerical simulations. It is the ratio to the minoirty carrier Lifetime
-        t_stepNo: (float, default=1000, unitless)
-            The number of time steps taken
-        Gss: (float, defualy=1e20, photons)
-            the illumination intensity.
-        plot_carriers: (bool, default=True)
-            creats a plot of the carriers with time
-        plot_lifeimte: (bool, default=True)
-            creates a plot of lifetime
-
-    returns:
-        ne: (1D, array like)
-            number of electrons for each time step
-        nh: (1D, array like)
-            number of holes for each time step
-        nd: (nD, array like)
-            occupation of defects in the posisble states. The n comes from the number of states in a defect.
-        t: (array like)
-            the time
+    Returns
+    -------
+    ne : (1D, array like)
+        number of electrons for each time step
+    nh : (1D, array like)
+        number of holes for each time step
+    nd : (nD, array like)
+        occupation of defects in the posisble states. The n comes from the number of states in a defect.
+    t : (array like)
+        the time
 
     '''
     # put in it the simulation
@@ -338,40 +341,32 @@ def trans(sample, ne, nh, nte, G_ss=1e22, t_stepf=2000):
 
     This function allows easy passing of the samples class.
 
-    inputs:
-        sample:
-            (class)
-            An instance of the sample class
-        ne:
-            (float)
-            the inital number of free electrons
-        nh:
-            (float)
-            the inital number of free holes
-        nte:
-            (float)
-            the inital number of electrons in the defect
-        G_ss:
-            (float)
-            The generation rate at which the decay ends at. This assumes the sample
-            is in steady state at the start of the decay.
-        t_stepf:
-            (float)
-            t_stepf is the mutlipler to the smallest lifetime that is used as the length of the simulation.
+    Parameters
+    ----------
+    sample: (class)
+        An instance of the sample class
+    ne: (float)
+        the inital number of free electrons
+    nh: (float)
+        the inital number of free holes
+    nte: (float)
+        the inital number of electrons in the defect
+    G_ss: (float)
+        The generation rate at which the decay ends at. This assumes the sample
+        is in steady state at the start of the decay.
+    t_stepf: (float)
+        t_stepf is the mutlipler to the smallest lifetime that is used as the length of the simulation.
 
-    output:
-        ne:
-            (array)
-            the number of free electrons with time
-        nh:
-            (array)
-            the number of holes electrons with time
-        t:
-            (array)
-            the time
-        nte:
-            (array)
-            the electrons in the traps
+    Returns
+    -------
+    ne: (array)
+        the number of free electrons with time
+    nh: (array)
+        the number of holes electrons with time
+    t: (array)
+        the time
+    nte: (array)
+        the electrons in the traps
     '''
 
     return _SRH_trans2(ne=ne, nh=nh, nte=nte, Nacc=sample.Nacc,
@@ -390,40 +385,32 @@ def trans_multilevel(sample, ne, nh, ncs, G_ss=1e22, t_stepf=2000, t_stepNo=1000
 
     This function allows easy passing of the samples class.
 
-    inputs:
-        sample:
-            (class)
-            An instance of the sample class
-        ne:
-            (float)
-            the inital number of free electrons
-        nh:
-            (float)
-            the inital number of free holes
-        ncs:
-            (float)
-            the fraction of each charge state
-        G_ss:
-            (float)
-            The generation rate at which the decay ends at. This assumes the sample
-            is in steady state at the start of the decay.
-        t_stepf:
-            (float)
-            t_stepf is the mutlipler to the smallest lifetime that is used as the length of the simulation.
+    Parameters
+    ----------
+    sample: (class)
+        An instance of the sample class
+    ne: (float)
+        the inital number of free electrons
+    nh: (float)
+        the inital number of free holes
+    ncs: (float)
+        the fraction of each charge state
+    G_ss: (float)
+        The generation rate at which the decay ends at. This assumes the sample
+        is in steady state at the start of the decay.
+    t_stepf: (float)
+        t_stepf is the mutlipler to the smallest lifetime that is used as the length of the simulation.
 
-    output:
-        ne:
-            (array)
-            the number of free electrons with time
-        nh:
-            (array)
-            the number of holes electrons with time
-        t:
-            (array)
-            the time
-        ncs:
-            (array)
-            the charge state of the defect
+    Returns
+    -------
+    ne: (array)
+        the number of free electrons with time
+    nh: (array)
+        the number of holes electrons with time
+    t: (array)
+        the time
+    ncs: (array)
+        the charge state of the defect
     '''
 
     return _SRH_trans_multi(ne=ne, nh=nh, ncs=ncs, Nacc=sample.Nacc,
@@ -436,51 +423,42 @@ def _SRH_trans(ne, nh, nte,  Nacc, Ndon, ni, temp, dft_list, bkg_tau, G_ss=1e22,
     '''
     Solve the excess carrier density with time. It assumes the
 
-    inputs:
-        ne:
-            (float)
-            the inital number of electonrs
-        nh:
-            (float)
-            the inital number of holes
-        nte:
-            the inital number of electrons in the defect
-        Na:
-            (float)
-            the number of ionised acceptors
-        Nd:
-            (float)
-            the number of ionised donors
-        ni:
-            (float)
-            The intrinsic carrier density
-        temp:
-            (float, Kelvin)
-            the temperature
-        dft_list:
-            (list)
-            A defect list from the srh class.
-        bkg_tau:
-            (float, s)
-            A constant background recombiation Lifetime
-        G_ss:
-            (float)
-            The generation rate to which the transient condition converges
-        t_stepf:
-            (float)
-            a the mutlipler that controls the size of time step. Change this value is things look strange.
-        t_stepNo:
-            (float)
-            number of time steps
+    Parameters
+    ----------
+    ne: (float)
+        the inital number of electonrs
+    nh: (float)
+        the inital number of holes
+    nte:
+        the inital number of electrons in the defect
+    Na: (float)
+        the number of ionised acceptors
+    Nd: (float)
+        the number of ionised donors
+    ni: (float)
+        The intrinsic carrier density
+    temp: (float, Kelvin)
+        the temperature
+    dft_list: (list)
+        A defect list from the srh class.
+    bkg_tau: (float, s)
+        A constant background recombiation Lifetime
+    G_ss: (float)
+        The generation rate to which the transient condition converges
+    t_stepf: (float)
+        a the mutlipler that controls the size of time step. Change this value is things look strange.
+    t_stepNo: (float)
+        number of time steps
 
     '''
 
     def SRH_fitting(y, t, G):
         '''
-        inputs:
-            y = [ne, nh, nte]
-            t is time
-            G is generation rate
+        Parameters
+        ----------
+            y : [ne, nh, nte]
+            t : time
+            G : generation rate
 
         '''
 
@@ -559,43 +537,32 @@ def _SRH_trans_multi(ne, nh, ncs,  Nacc, Ndon, ni, temp, dft_list, bkg_tau, ne0,
     '''
     Solve the excess carrier density with time. It assumes the
 
-    inputs:
-        ne:
-            (float)
-            the inital number of electonrs
-        nh:
-            (float)
-            the inital number of holes
-        ncs:
-            (array)
-            the number of defects in each charge state
-        Nacc:
-            (float)
-            the number of ionised acceptors
-        Ndon:
-            (float)
-            the number of ionised donors
-        ni:
-            (float)
-            The intrinsic carrier density
-        temp:
-            (float, Kelvin)
-            the temperature
-        dft_list:
-            (list)
-            A defect list from the srh class.
-        bkg_tau:
-            (float, s)
-            A constant background recombiation Lifetime
-        G_ss:
-            (float)
-            The generation rate to which the transient condition converges
-        t_stepf:
-            (float)
-            a the mutlipler that controls the size of time step. Change this value is things look strange.
-        t_stepNo:
-            (float)
-            number of time steps
+    Parameters
+    ----------
+    ne : (float)
+        the inital number of electonrs
+    nh: (float)
+        the inital number of holes
+    ncs: (array)
+        the number of defects in each charge state
+    Nacc: (float)
+        the number of ionised acceptors
+    Ndon: (float)
+        the number of ionised donors
+    ni: (float)
+        The intrinsic carrier density
+    temp: (float, Kelvin)
+        the temperature
+    dft_list: (list)
+        A defect list from the srh class.
+    bkg_tau: (float, s)
+        A constant background recombiation Lifetime
+    G_ss: (float)
+        The generation rate to which the transient condition converges
+    t_stepf: (float)
+        a the mutlipler that controls the size of time step. Change this value is things look strange.
+    t_stepNo: (float)
+        number of time steps
 
     '''
 
@@ -647,7 +614,8 @@ def _SRH_trans_multi(ne, nh, ncs,  Nacc, Ndon, ni, temp, dft_list, bkg_tau, ne0,
 
     def SRH_fitting(y, t, G):
         '''
-        inputs:
+        Parameters
+        ----------
             y = [ne, nh, rcs]
             t is time
             G is generation rate

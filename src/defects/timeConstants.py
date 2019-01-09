@@ -14,18 +14,29 @@ def escape_time_constants(Ed, sigma_e, sigma_h, ni, temp, ne0, nh0, bk_tau):
     returns the escape time constants for a single level defect.
     These values are returned in a dictionary
 
-    inputs:
-        Ed: activation energy level
-        sigma_e: capture cross section of electrons
-        sigma_h: capture cross section of holes
-        ni: intrinsic carrier density
-        temp: temperature
-        ne0: number of electrons in the dark
-        nh0: number of holes in the dark
-        bk_tau: a background lifetime
+    Parameters
+    ----------
+    Ed:
+        activation energy level
+    sigma_e:
+        capture cross section of electrons
+    sigma_h:
+        capture cross section of holes
+    ni:
+        intrinsic carrier density
+    temp:
+        temperature
+    ne0:
+        number of electrons in the dark
+    nh0:
+        number of holes in the dark
+    bk_tau:
+        a background lifetime
 
-    output:
-        dictionary with keys:
+    Returns
+    -------
+    dictionary:
+        The keys of which are
          * DLTS: the time constant expected from DLTS
          * DLTS-Mo: The time constant expected from minority carrier DLTS
          * PC: the time constant expected from transient photoconductance
@@ -39,15 +50,21 @@ def escape_time_constants(Ed, sigma_e, sigma_h, ni, temp, ne0, nh0, bk_tau):
             'HH-simp': HornbeckHanes_simplified(Ed, sigma_e, sigma_h, ni, ne0, nh0,  temp, bk_tau)}
 
 
-def get_HH_full(tau_r, tau_dr, sigma_m, vth_m, nte, nte0, n_i, Ed, temp):
+def __get_HH_full(tau_r, tau_dr, sigma_m, vth_m, nte, nte0, n_i, Ed, temp):
     '''
-    Man there is a lot of defined vairables in this paper.
+    Man there is a lot of defined vairables in this paper. this current;y doesn't work
 
-    tau_r: recombiation in the bulk of the semiconductor
-    tau_g: generation of minority carriers from the trap. sigma_e vth_e n_i exp(+-Ed)z`
-    tau_dr: recombination in the defect
-    simga: capture cross section of the minority
-    v: thermal velocity of the minority carrier
+    Parameters
+
+    tau_r:
+        recombiation in the bulk of the semiconductor
+    tau_g:
+        generation of minority carriers from the trap. sigma_e vth_e n_i exp(+-Ed)z`
+    tau_dr:
+        recombination in the defect
+    simga:
+        capture cross section of the minority
+    vth_m: thermal velocity of the minority carrier
     N: change in occupation from the dark.
     y: 1 under illumination 0 in the dark. Trap occupation.
 
@@ -80,7 +97,19 @@ def get_HH_full(tau_r, tau_dr, sigma_m, vth_m, nte, nte0, n_i, Ed, temp):
 
 def get_electron_timeconstant(Ed, sigma_e,  ni, temp=300):
     '''
-    Get the lifetime from the emission of an electron
+    Get the time for the emission of an electron
+
+    Parameters
+    ----------
+
+    Ed :
+        Energy level of the defect from the intrinsic level
+    sigma_e :
+        The capture cross section of electrons
+    ni :
+        The intrinsic carrier density
+    temp :
+        The temperature of the material
     '''
 
     vth_e, vth_h = tm.update(temp=temp)
@@ -97,6 +126,18 @@ def get_electron_timeconstant(Ed, sigma_e,  ni, temp=300):
 def get_hole_timeconstant(Ed, sigma_h, ni, temp=300):
     '''
     Get the lifetime from the emission of an hole
+
+    Parameters
+    ----------
+
+    Ed :
+        Energy level of the defect from the intrinsic level
+    sigma_h :
+        The capture cross section of holes
+    ni :
+        The intrinsic carrier density
+    temp :
+        The temperature of the material
     '''
 
     vth_e, vth_h = tm.update(temp=temp)
@@ -114,6 +155,20 @@ def get_DLTS_transient(Ed, sigma_e, sigma_h, ni, temp=300):
     '''
     Calculates the time constant from DLTS. This assumes the doping type
     is on the opposite side of the band half than the defect.
+
+    Parameters
+    ----------
+
+    Ed :
+        Energy level of the defect from the intrinsic level
+    sigma_e :
+        The capture cross section of electrons
+    sigma_h :
+        The capture cross section of holes
+    ni :
+        The intrinsic carrier density
+    temp :
+        The temperature of the material
     '''
 
     vth_e, vth_h = tm.update(temp=temp)
@@ -138,6 +193,20 @@ def get_minority_DLTS_transient(Ed, sigma_e, sigma_h, ni, temp=300):
     Calculates the time constant from DLTS minority carrier measurement.
     This assumes the doping type is on the opposite side of the band half
     than the defect.
+
+    Parameters
+    ----------
+
+    Ed :
+        Energy level of the defect from the intrinsic level
+    sigma_e :
+        The capture cross section of electrons
+    sigma_h :
+        The capture cross section of holes
+    ni :
+        The intrinsic carrier density
+    temp :
+        The temperature of the material
     '''
 
     vth_e, vth_h = tm.update(temp=temp)
@@ -160,6 +229,22 @@ def get_rec_transient(Ed, sigma_e, sigma_h, ne0, nh0, temp=300):
     Calculates the time constant from recombiation
     This represents the capture of the majority carrier, as its concentration
     is significantly larger and does not change.
+
+    Parameters
+    ----------
+
+    Ed :
+        Energy level of the defect from the intrinsic level
+    sigma_e :
+        The capture cross section of electrons
+    sigma_h :
+        The capture cross section of holes
+    ne0 :
+        The concentration of electrons in the dark
+    nh0 :
+        The concentration of holes in the dark
+    temp :
+        The temperature of the material
     '''
     vth_e, vth_h = tm.update(temp=temp)
 
@@ -183,6 +268,25 @@ def get_rec_transient(Ed, sigma_e, sigma_h, ne0, nh0, temp=300):
 def get_PC_transient(Ed, sigma_e, sigma_h, ni, ne0, nh0, temp=300):
     '''
     Calculates the time constant from PC
+
+    Parameters
+    ----------
+
+    Ed :
+        Energy level of the defect from the intrinsic level
+    sigma_e :
+        The capture cross section of electrons
+    sigma_h :
+        The capture cross section of holes
+    ni :
+        The intrinsic carrier density
+    ne0 :
+        The concentration of electrons in the dark
+    nh0 :
+        The concentration of holes in the dark
+    temp :
+        The temperature of the material
+
     '''
     vth_e, vth_h = tm.update(temp=temp)
 
@@ -208,6 +312,26 @@ def get_PC_transient(Ed, sigma_e, sigma_h, ni, ne0, nh0, temp=300):
 def HornbeckHanes_simplified(Ed, sigma_e, sigma_h, ni, ne0, nh0, temp, tau_bkg):
     '''
     Calculates the time constant from hornbeck and Hanes Simplified model
+
+    Parameters
+    ----------
+
+    Ed :
+        Energy level of the defect from the intrinsic level
+    sigma_e :
+        The capture cross section of electrons
+    sigma_h :
+        The capture cross section of holes
+    ni :
+        The intrinsic carrier density
+    ne0 :
+        The concentration of electrons in the dark
+    nh0 :
+        The concentration of holes in the dark
+    temp :
+        The temperature of the material
+    tau_bkg:
+        The effective recombination lifetime of the semiconductor
     '''
     vth_e, vth_h = tm.update(temp=temp)
     Vt = C.k * temp / C.e

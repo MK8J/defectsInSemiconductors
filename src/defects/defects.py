@@ -82,21 +82,25 @@ class SingleLevel():
         returns the net charge of the defect for a given temperature and
         energy level
 
-        inputs:
-            Ef: (float or list of 2 floats, eV)
-                The Fermi energy level or list of quasi fermi energy level.
-                If a list is provided it is assumed the electron quasi Fermi
-                energy level is first
-            temp: (float, kelvin)
-                temperature of the sample
+        Parameters
+        ----------
+        Ef : (float or list of 2 floats, eV)
+            The Fermi energy level or list of quasi fermi energy level.
+            If a list is provided it is assumed the electron quasi Fermi
+            energy level is first
+        temp : (float, kelvin)
+            temperature of the sample
 
         Examples
+        --------
+
         We can see the change on a defect we now define. Note this is an unusual defect as it has a possible charges of +1 or -1. This is just used now as it makes the example simplier
 
         >>> s = SingleDefect(Ed=0, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12, occupied_charge=-1, unoccupied_charge=1)
 
         As a function of the Fermi energy level. It should be negative
         the higher the fermi energy level
+
         >>> print('{0:.2e}'.format(s.net_charge(0.3,300)))
         -1.00e+12
 
@@ -104,6 +108,7 @@ class SingleLevel():
         1.00e+12
 
         It should be 0 when Ed-Ef
+
         >>> print('{0:.2f}'.format(s.net_charge(0,300)))
         0.00
         '''
@@ -119,32 +124,38 @@ class SingleLevel():
 
         This is equilivant to DOI: 10.1063/1.4906465
 
-        inputs:
-            Ef: (float or list of 2 floats, [Efe, Efh], eV)
+        Parameters
+        ----------
+            Ef : (float or list of 2 floats, [Efe, Efh], eV)
                 The Fermi energy level or list of quasi fermi energy level.
                 If a list is provided it is assumed the electron quasi Fermi
                 energy level is first
-            temp: (float, kelvin)
+            temp : (float, kelvin)
                 temperature of the sample
 
-        For Examples
+        Examples
+        --------
 
         for a defect in the lower half of the band gap in an n-type material it should be full of electrons. So we get the first state empty, and the second state full
+
         >>> s = SingleDefect(Ed=-0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print(s.charge_state_concentration(0.3, 300))
         [3.98443584e+03 9.99999996e+11]
 
         if we reverse the defect and fermi level, we reverse the occupation
+
         >>> s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print(s.charge_state_concentration(-0.3, 300))
         [9.99999996e+11 3.98443584e+03]
 
         for a defect level equal to the fermi energy level the occupations is 50%.
+
         >>> s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print(s.charge_state_concentration(0.2, 300))
         [5.e+11 5.e+11]
 
         Finially we can also provide both a hole and electron fermi energy level
+
         >>> s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print(s.charge_state_concentration([0.4,0.2], 300))
         [4.36472835e+08 9.99563527e+11]
@@ -160,30 +171,39 @@ class SingleLevel():
 
         This is equilivant to inver alpha from DOI: 10.1063/1.4906465... well its very similar. But this is correct.
 
-        inputs:
-            Ef: (float or list of 2 floats, eV)
-                The Fermi energy level or list of quasi fermi energy level.
-                If a list is provided it is assumed the electron quasi Fermi
-                energy level is first
-            temp: (float, kelvin)
-                temperature of the sample
+        Parameters
+        ----------
+        Ef : (float or list of 2 floats, eV)
+            The Fermi energy level or list of quasi fermi energy level.
+            If a list is provided it is assumed the electron quasi Fermi
+            energy level is first
+        temp : (float, kelvin)
+            temperature of the sample
 
-        An example is as follows. When Ef = Ed the occupation ratio should be 1, i.e. the defects occupy the same number
+
+        Example
+        -------
+
+        When Ef = Ed the occupation ratio should be 1, i.e. the defects occupy the same number
+
         >>> s = SingleDefect(Ed=0., sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print('n_de = {0:.2f}'.format(s.occupation_ratio_SS(0, 300)))
         n_de = 1.00
 
         Moreover, for symetric capture cross sections and a defect at midgap, if a symetric splitting occurs we maintain the even occupation.
+
         >>> print('n_de = {0:.2f}'.format(s.occupation_ratio_SS([0.3,-0.3], 300)))
         n_de = 1.00
 
 
         If we move away from midgap, this doesn't hold
+
         >>> s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print('n_de = {0:.2f}'.format(s.occupation_ratio_SS([0.3,-0.3], 300)))
         n_de = 0.98
 
         But if we again make the splitting even around the defect, it works!
+
         >>> print('n_de = {0:.0f}'.format(s.occupation_ratio_SS([0.4,-0.2], 300)))
         n_de = 1145
         '''
@@ -215,24 +235,29 @@ class SingleLevel():
         '''
         This calculates the recombiation occuring through a defect in steady state.
 
-        inputs:
-            qEfe: (float eV)
-                The quasi Fermi energy level of electons
-            qEfh: (float eV)
-                The quasi Fermi energy level of holes
+        Parameters
+        ----------
+        qEfe : (float eV)
+            The quasi Fermi energy level of electons
+        qEfh : (float eV)
+            The quasi Fermi energy level of holes
 
-            temp: (float, kelvin)
-                temperature of the sample
-            ni: (float, cm^-3)
-                the intrinsic carrier density
+        temp : (float, kelvin)
+            temperature of the sample
+        ni : (float, cm^-3)
+            the intrinsic carrier density
 
 
-        Notes:
+        Notes
+        -----
+
         The emission and capture rates are the same as a shockley read hall defect.
 
         This uses the Sah and Shockley formalisation, eqn 3.19 in 10.1103/PhysRev.109.1103 but with one level, which is the same as
         Shockley dx.doi.org/10.1103/PhysRev.87.835.
 
+        Examples
+        --------
         We can get this value by either providing a float
         >>> s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print('{0:.2e}'.format(s.recombination_SS(0.3,-0.3, 300, 1e10)))
@@ -272,37 +297,73 @@ class SingleLevel():
 
         return U
 
-    def emitted_e(self, nte, ni, temp):
+    def emitted_e(self, nde, ni, temp):
         '''
         The emission rate of electrons
-        '''
-        return self._e_emission_coef(ni, temp) * nte
 
-    def emitted_h(self, nte, ni, temp):
+        Parameters
+        ----------
+
+        nde :
+            the concentration of electron in the defect
+        ni :
+            the intrinsic carrier density of the semiconductor
+        temp:
+            the temperature in Kelvin
+        '''
+        return self._e_emission_coef(ni, temp) * nde
+
+    def emitted_h(self, nde, ni, temp):
         '''
         The emission rate of holes
-        '''
-        nth = self.Nd - nte
-        return self._h_emission_coef(ni, temp) * nth
 
-    def capture_e(self, ne, nte):
+        Parameters
+        ----------
+
+        nde :
+            the concentration of electron in the defect
+        ni :
+            the intrinsic carrier density of the semiconductor
+        temp:
+            the temperature in Kelvin
+        '''
+        ndh = self.Nd - nde
+        return self._h_emission_coef(ni, temp) * ndh
+
+    def capture_e(self, ne, nde):
         '''
         The capture rate of electrons
-        '''
-        nth = self.Nd - nte
-        # note that the division by Nd removes its impact
-        return ne * nth / self.tau_emin / self.Nd
 
-    def capture_h(self, nh, nte):
+        Parameters
+        ----------
+        ne :
+            the concentration of free electrons
+        nde :
+            the concentration of electron in the defect
+        '''
+        ndh = self.Nd - nde
+        # note that the division by Nd removes its impact
+        return ne * ndh / self.tau_emin / self.Nd
+
+    def capture_h(self, nh, nde):
         '''
         The capture rate of holes
+
+        Parameters
+        ----------
+        nh :
+            the concentration of free hole
+        nde :
+            the concentration of electron in the defect
         '''
         # note that the division by Nd removes its impact
-        return nh * nte / self.tau_hmin / self.Nd
+        return nh * nde / self.tau_hmin / self.Nd
 
     @property
     def tau_emin(self):
         '''
+        The minimum lifetime of electrons
+
         >>> s = SingleDefect(Ed=0, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print('{0:.2e} us'.format(s.tau_emin))
         4.88e-06 us
@@ -324,6 +385,8 @@ class SingleLevel():
     @property
     def tau_hmin(self):
         '''
+        The minimum lifetime of holes
+
         >>> s = SingleDefect(Ed=0, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print('{0:.2e} us'.format(s.tau_hmin))
         5.92e-06 us
@@ -343,6 +406,9 @@ class SingleLevel():
 
     @property
     def sigma_h(self):
+        '''
+        The capture cross section of holes
+        '''
         if self.__sigma_h is None:
             val = 1. / self.__tau_hmin / self.vth_h / self.Nd
         else:
@@ -360,6 +426,9 @@ class SingleLevel():
 
     @property
     def sigma_e(self):
+        '''
+        The capture cross section of electrons
+        '''
         if self.__sigma_h is None:
             val = 1. / self.__tau_emin / self.vth_e / self.Nd
         else:
@@ -449,9 +518,12 @@ class MultiLevel(SingleLevel):
         '''
         calculates the net charge of the defect given fermi energy level and temperature.
 
-        Ef: (float or array, unit eV)
+        Parameters
+        ----------
+
+        Ef : (float or array, unit eV)
             the fermi energy level or quasi fermi energy level. If both electron and hole are provided the electron is to be provided first.
-        temo: (float in K)
+        temp : (float in K)
             The temperature of the sample.
         '''
         ncs = self.charge_state_concentration(Ef, temp)
@@ -464,25 +536,24 @@ class MultiLevel(SingleLevel):
 
     def recombination_SS_ateachlevel(self, qEfe, qEfh, temp, ni):
         '''
-        This calculates the recombiation occuring through a defect in steady state.
+        This calculates the recombiation occuring through a defect in steady state. This uses the Sah and Shockley formalisation, eqn 3.19 in 10.1103/PhysRev.109.1103.
 
-        inputs:
-            qEfe: (float eV)
-                The quasi Fermi energy level of electons
-            qEfh: (float eV)
-                The quasi Fermi energy level of holes
+        Parameters
+        ----------
+        qEfe : (float eV)
+            The quasi Fermi energy level of electons
+        qEfh : (float eV)
+            The quasi Fermi energy level of holes
 
-            temp: (float, kelvin)
-                temperature of the sample
-            ni: (float, cm^-3)
-                the intrinsic carrier density
+        temp : (float, kelvin)
+            temperature of the sample
+        ni : (float, cm^-3)
+            the intrinsic carrier density
 
-        out:
-            recombiation: (array (nxm), cm^-3)
-                where n is the number of quasi fermi energy level set, and m is the number of defect levels.
-
-        This uses the Sah and Shockley formalisation, eqn 3.19 in 10.1103/PhysRev.109.1103.
-
+        Returns
+        -------
+        recombiation : (array (nxm), cm^-3)
+            where n is the number of quasi fermi energy level set, and m is the number of defect levels.
         '''
 
         if not isinstance(qEfe, np.ndarray):
@@ -538,19 +609,21 @@ class MultiLevel(SingleLevel):
         '''
         This calculates the total recombiation occuring through all defect levels in steady state.
 
-        inputs:
-            qEfe: (float eV)
-                The quasi Fermi energy level of electons
-            qEfh: (float eV)
-                The quasi Fermi energy level of holes
+        Parameters
+        ----------
+        qEfe : (float eV)
+            The quasi Fermi energy level of electons
+        qEfh : (float eV)
+            The quasi Fermi energy level of holes
 
-            temp: (float, kelvin)
-                temperature of the sample
-            ni: (float, cm^-3)
-                the intrinsic carrier density
+        temp : (float, kelvin)
+            temperature of the sample
+        ni : (float, cm^-3)
+            the intrinsic carrier density
 
 
-        Notes:
+        Notes
+        -----
         The emission and capture rates are the same as a shockley read hall defect.
         '''
 
@@ -569,12 +642,13 @@ class MultiLevel(SingleLevel):
         Note here ncs represents the number of defects in each charge stage. It should be listed from the lowest level upwards. It should be one larger than the numer of capture cross sections/energy levels of the defect.
 
 
-        inputs:
-            ne: (float)
-                The number of electrons in the conduction band
+        Parameters
+        ----------
+        ne : (float)
+            The number of electrons in the conduction band
 
-            ncs: (array)
-                the number of defects in each charge stage. It should be listed from the lowest level upwards.
+        ncs : (array)
+            the number of defects in each charge stage. It should be listed from the lowest level upwards.
         '''
         return ne * ncs[:-1] * self.vth_e * self.sigma_e
 
@@ -583,12 +657,13 @@ class MultiLevel(SingleLevel):
         The net transition of holes into all levels of a multi level defect
 
 
-        inputs:
-            nh: (float)
-                The number of holes in the valance band
+        Parameters
+        ----------
+        nh : (float)
+            The number of holes in the valance band
 
-            ncs: (array)
-                the number of defects in each charge stage. It should be listed from the lowest level upwards.
+        ncs : (array)
+            the number of defects in each charge stage. It should be listed from the lowest level upwards.
         '''
 
         return nh * ncs[1:] * self.vth_h * self.sigma_h
@@ -597,14 +672,15 @@ class MultiLevel(SingleLevel):
         '''
         The net transition of electonrs out all levels of a multi level defect
 
-        inputs:
-            ncs: (array)
-                the number of defects in each charge stage. It should be listed from the lowest level upwards.
+        Parameters
+        ----------
+        ncs : (array)
+            the number of defects in each charge stage. It should be listed from the lowest level upwards.
 
-            ni: (float)
-                The intrinsic carrier density
-            temp: (float)
-                The temeprature
+        ni : (float)
+            The intrinsic carrier density
+        temp : (float)
+            The temeprature
 
         '''
         # print('too many prints', self._e_emission_coef(ni, temp), ncs[1:])
@@ -614,11 +690,12 @@ class MultiLevel(SingleLevel):
         '''
         The net transition of holes out all levels of a multi level defect
 
-        inputs:
-            nh: (array)
-                The number of holes in the valance band
+        Parameters
+        ----------
+        nh : (array)
+            The number of holes in the valance band
 
-            ncs: (array)
-                the number of defects in each charge stage. It should be listed from the lowest level upwards.
+        ncs : (array)
+            the number of defects in each charge stage. It should be listed from the lowest level upwards.
         '''
         return self._h_emission_coef(ni, temp) * ncs[:-1]
