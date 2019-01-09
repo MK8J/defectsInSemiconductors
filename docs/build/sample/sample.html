@@ -16,8 +16,6 @@
     <script type="text/javascript" src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Solvers" href="../solver/solvers.html" />
-    <link rel="prev" title="Defect Types" href="../defects/defects.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -43,6 +41,68 @@ One of the problems is that there is a lot of properties so this is a very
 large class</p>
 <blockquote>
 <div>ni, vth_e, vth_h are all calculated values from theoretical models unless a value is provided.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Ef</strong></dt>
+<dd></dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.Nacc" title="defects.sample.Sample.Nacc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Nacc</span></code></a></dt>
+<dd><p class="first last">The concentration of acceptor dopant atoms</p>
+</dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.Ndon" title="defects.sample.Sample.Ndon"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Ndon</span></code></a></dt>
+<dd><p class="first last">The concentration of donor dopant atoms</p>
+</dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.Vt" title="defects.sample.Sample.Vt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Vt</span></code></a></dt>
+<dd><p class="first last">The thermal voltage</p>
+</dd>
+<dt><strong>defectlist</strong></dt>
+<dd></dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.dopant_type" title="defects.sample.Sample.dopant_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dopant_type</span></code></a></dt>
+<dd><p class="first last">The sample’s dopant type</p>
+</dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.doping" title="defects.sample.Sample.doping"><code class="xref py py-obj docutils literal notranslate"><span class="pre">doping</span></code></a></dt>
+<dd><p class="first last">The number of dopants.</p>
+</dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.ni" title="defects.sample.Sample.ni"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ni</span></code></a></dt>
+<dd><p class="first last">The sample’s intrinsic carrier density.</p>
+</dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.ni_eff" title="defects.sample.Sample.ni_eff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ni_eff</span></code></a></dt>
+<dd><p class="first last">Currently not impimented and just returns the intrinsic carrier density.</p>
+</dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.temp" title="defects.sample.Sample.temp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">temp</span></code></a></dt>
+<dd><p class="first last">The sample temperature in kelvin</p>
+</dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.vth_e" title="defects.sample.Sample.vth_e"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vth_e</span></code></a></dt>
+<dd><p class="first last">The thermal velocity of an electron</p>
+</dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.vth_h" title="defects.sample.Sample.vth_h"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vth_h</span></code></a></dt>
+<dd><p class="first last">The thermal velocity of an electron</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#defects.sample.Sample.defectlist_removeDefect" title="defects.sample.Sample.defectlist_removeDefect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">defectlist_removeDefect</span></code></a>(number)</td>
+<td>Removes a single defect from the defect list</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#defects.sample.Sample.equlibrium_concentrations" title="defects.sample.Sample.equlibrium_concentrations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">equlibrium_concentrations</span></code></a>()</td>
+<td>Calculate the equlibrium carrier concentration</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#defects.sample.Sample.steady_state_concentraions" title="defects.sample.Sample.steady_state_concentraions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">steady_state_concentraions</span></code></a>(nxc)</td>
+<td>Calculate the steady state concentration of carriers, provided the number of excess minoirty carriers by peturbing the number of excess majority carriers.</td>
+</tr>
+</tbody>
+</table>
 <dl class="attribute">
 <dt id="defects.sample.Sample.Nacc">
 <code class="descname">Nacc</code><a class="headerlink" href="#defects.sample.Sample.Nacc" title="Permalink to this definition">¶</a></dt>
@@ -95,10 +155,14 @@ large class</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>ne0</strong> (<em>float</em>) – the free electron concentration in the dark</li>
-<li><strong>nh0</strong> (<em>float</em>) – the free hole concentration in the dark</li>
-</ul>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>ne0</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">the free electron concentration in the dark</p>
+</dd>
+<dt><strong>nh0</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">the free hole concentration in the dark</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -127,12 +191,21 @@ provided the number of excess minoirty carriers by peturbing the number of exces
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nxc</strong> (<em>float</em>) – the number of excess carrier densities</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>nxc</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">the number of excess carrier densities</p>
+</dd>
+</dl>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>ne0</strong> (<em>float</em>) – the free electron concentration</li>
-<li><strong>nh0</strong> (<em>float</em>) – the free hole concentration</li>
-</ul>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>ne0</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">the free electron concentration</p>
+</dd>
+<dt><strong>nh0</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">the free hole concentration</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -189,8 +262,6 @@ provided the number of excess minoirty carriers by peturbing the number of exces
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="../defects/defects.html" title="previous chapter">Defect Types</a></li>
-      <li>Next: <a href="../solver/solvers.html" title="next chapter">Solvers</a></li>
   </ul></li>
 </ul>
 </div>

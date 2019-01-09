@@ -43,16 +43,32 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Ed</strong> – Energy level of the defect from the intrinsic level</li>
-<li><strong>sigma_e</strong> – The capture cross section of electrons</li>
-<li><strong>sigma_h</strong> – The capture cross section of holes</li>
-<li><strong>ni</strong> – The intrinsic carrier density</li>
-<li><strong>ne0</strong> – The concentration of electrons in the dark</li>
-<li><strong>nh0</strong> – The concentration of holes in the dark</li>
-<li><strong>temp</strong> – The temperature of the material</li>
-<li><strong>tau_bkg</strong> – The effective recombination lifetime of the semiconductor</li>
-</ul>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Ed :</strong></dt>
+<dd><p class="first last">Energy level of the defect from the intrinsic level</p>
+</dd>
+<dt><strong>sigma_e :</strong></dt>
+<dd><p class="first last">The capture cross section of electrons</p>
+</dd>
+<dt><strong>sigma_h :</strong></dt>
+<dd><p class="first last">The capture cross section of holes</p>
+</dd>
+<dt><strong>ni :</strong></dt>
+<dd><p class="first last">The intrinsic carrier density</p>
+</dd>
+<dt><strong>ne0 :</strong></dt>
+<dd><p class="first last">The concentration of electrons in the dark</p>
+</dd>
+<dt><strong>nh0 :</strong></dt>
+<dd><p class="first last">The concentration of holes in the dark</p>
+</dd>
+<dt><strong>temp :</strong></dt>
+<dd><p class="first last">The temperature of the material</p>
+</dd>
+<dt><strong>tau_bkg:</strong></dt>
+<dd><p class="first last">The effective recombination lifetime of the semiconductor</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -68,19 +84,37 @@ These values are returned in a dictionary</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>Ed</strong> – activation energy level</li>
-<li><strong>sigma_e</strong> – capture cross section of electrons</li>
-<li><strong>sigma_h</strong> – capture cross section of holes</li>
-<li><strong>ni</strong> – intrinsic carrier density</li>
-<li><strong>temp</strong> – temperature</li>
-<li><strong>ne0</strong> – number of electrons in the dark</li>
-<li><strong>nh0</strong> – number of holes in the dark</li>
-<li><strong>bk_tau</strong> – a background lifetime</li>
-</ul>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>Ed:</strong></dt>
+<dd><p class="first last">activation energy level</p>
+</dd>
+<dt><strong>sigma_e:</strong></dt>
+<dd><p class="first last">capture cross section of electrons</p>
+</dd>
+<dt><strong>sigma_h:</strong></dt>
+<dd><p class="first last">capture cross section of holes</p>
+</dd>
+<dt><strong>ni:</strong></dt>
+<dd><p class="first last">intrinsic carrier density</p>
+</dd>
+<dt><strong>temp:</strong></dt>
+<dd><p class="first last">temperature</p>
+</dd>
+<dt><strong>ne0:</strong></dt>
+<dd><p class="first last">number of electrons in the dark</p>
+</dd>
+<dt><strong>nh0:</strong></dt>
+<dd><p class="first last">number of holes in the dark</p>
+</dd>
+<dt><strong>bk_tau:</strong></dt>
+<dd><p class="first last">a background lifetime</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>dictionary:</strong></dt>
+<dd><dl class="first last docutils">
 <dt>The keys of which are</dt>
 <dd><ul class="first last simple">
 <li>DLTS: the time constant expected from DLTS</li>
@@ -90,10 +124,8 @@ These values are returned in a dictionary</p>
 </ul>
 </dd>
 </dl>
-</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dictionary</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -109,13 +141,23 @@ is on the opposite side of the band half than the defect.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Ed</strong> – Energy level of the defect from the intrinsic level</li>
-<li><strong>sigma_e</strong> – The capture cross section of electrons</li>
-<li><strong>sigma_h</strong> – The capture cross section of holes</li>
-<li><strong>ni</strong> – The intrinsic carrier density</li>
-<li><strong>temp</strong> – The temperature of the material</li>
-</ul>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Ed :</strong></dt>
+<dd><p class="first last">Energy level of the defect from the intrinsic level</p>
+</dd>
+<dt><strong>sigma_e :</strong></dt>
+<dd><p class="first last">The capture cross section of electrons</p>
+</dd>
+<dt><strong>sigma_h :</strong></dt>
+<dd><p class="first last">The capture cross section of holes</p>
+</dd>
+<dt><strong>ni :</strong></dt>
+<dd><p class="first last">The intrinsic carrier density</p>
+</dd>
+<dt><strong>temp :</strong></dt>
+<dd><p class="first last">The temperature of the material</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -130,15 +172,29 @@ is on the opposite side of the band half than the defect.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Ed</strong> – Energy level of the defect from the intrinsic level</li>
-<li><strong>sigma_e</strong> – The capture cross section of electrons</li>
-<li><strong>sigma_h</strong> – The capture cross section of holes</li>
-<li><strong>ni</strong> – The intrinsic carrier density</li>
-<li><strong>ne0</strong> – The concentration of electrons in the dark</li>
-<li><strong>nh0</strong> – The concentration of holes in the dark</li>
-<li><strong>temp</strong> – The temperature of the material</li>
-</ul>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Ed :</strong></dt>
+<dd><p class="first last">Energy level of the defect from the intrinsic level</p>
+</dd>
+<dt><strong>sigma_e :</strong></dt>
+<dd><p class="first last">The capture cross section of electrons</p>
+</dd>
+<dt><strong>sigma_h :</strong></dt>
+<dd><p class="first last">The capture cross section of holes</p>
+</dd>
+<dt><strong>ni :</strong></dt>
+<dd><p class="first last">The intrinsic carrier density</p>
+</dd>
+<dt><strong>ne0 :</strong></dt>
+<dd><p class="first last">The concentration of electrons in the dark</p>
+</dd>
+<dt><strong>nh0 :</strong></dt>
+<dd><p class="first last">The concentration of holes in the dark</p>
+</dd>
+<dt><strong>temp :</strong></dt>
+<dd><p class="first last">The temperature of the material</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -153,12 +209,20 @@ is on the opposite side of the band half than the defect.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Ed</strong> – Energy level of the defect from the intrinsic level</li>
-<li><strong>sigma_e</strong> – The capture cross section of electrons</li>
-<li><strong>ni</strong> – The intrinsic carrier density</li>
-<li><strong>temp</strong> – The temperature of the material</li>
-</ul>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Ed :</strong></dt>
+<dd><p class="first last">Energy level of the defect from the intrinsic level</p>
+</dd>
+<dt><strong>sigma_e :</strong></dt>
+<dd><p class="first last">The capture cross section of electrons</p>
+</dd>
+<dt><strong>ni :</strong></dt>
+<dd><p class="first last">The intrinsic carrier density</p>
+</dd>
+<dt><strong>temp :</strong></dt>
+<dd><p class="first last">The temperature of the material</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -173,12 +237,20 @@ is on the opposite side of the band half than the defect.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Ed</strong> – Energy level of the defect from the intrinsic level</li>
-<li><strong>sigma_h</strong> – The capture cross section of holes</li>
-<li><strong>ni</strong> – The intrinsic carrier density</li>
-<li><strong>temp</strong> – The temperature of the material</li>
-</ul>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Ed :</strong></dt>
+<dd><p class="first last">Energy level of the defect from the intrinsic level</p>
+</dd>
+<dt><strong>sigma_h :</strong></dt>
+<dd><p class="first last">The capture cross section of holes</p>
+</dd>
+<dt><strong>ni :</strong></dt>
+<dd><p class="first last">The intrinsic carrier density</p>
+</dd>
+<dt><strong>temp :</strong></dt>
+<dd><p class="first last">The temperature of the material</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -195,13 +267,23 @@ than the defect.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Ed</strong> – Energy level of the defect from the intrinsic level</li>
-<li><strong>sigma_e</strong> – The capture cross section of electrons</li>
-<li><strong>sigma_h</strong> – The capture cross section of holes</li>
-<li><strong>ni</strong> – The intrinsic carrier density</li>
-<li><strong>temp</strong> – The temperature of the material</li>
-</ul>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Ed :</strong></dt>
+<dd><p class="first last">Energy level of the defect from the intrinsic level</p>
+</dd>
+<dt><strong>sigma_e :</strong></dt>
+<dd><p class="first last">The capture cross section of electrons</p>
+</dd>
+<dt><strong>sigma_h :</strong></dt>
+<dd><p class="first last">The capture cross section of holes</p>
+</dd>
+<dt><strong>ni :</strong></dt>
+<dd><p class="first last">The intrinsic carrier density</p>
+</dd>
+<dt><strong>temp :</strong></dt>
+<dd><p class="first last">The temperature of the material</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -218,14 +300,26 @@ is significantly larger and does not change.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Ed</strong> – Energy level of the defect from the intrinsic level</li>
-<li><strong>sigma_e</strong> – The capture cross section of electrons</li>
-<li><strong>sigma_h</strong> – The capture cross section of holes</li>
-<li><strong>ne0</strong> – The concentration of electrons in the dark</li>
-<li><strong>nh0</strong> – The concentration of holes in the dark</li>
-<li><strong>temp</strong> – The temperature of the material</li>
-</ul>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Ed :</strong></dt>
+<dd><p class="first last">Energy level of the defect from the intrinsic level</p>
+</dd>
+<dt><strong>sigma_e :</strong></dt>
+<dd><p class="first last">The capture cross section of electrons</p>
+</dd>
+<dt><strong>sigma_h :</strong></dt>
+<dd><p class="first last">The capture cross section of holes</p>
+</dd>
+<dt><strong>ne0 :</strong></dt>
+<dd><p class="first last">The concentration of electrons in the dark</p>
+</dd>
+<dt><strong>nh0 :</strong></dt>
+<dd><p class="first last">The concentration of holes in the dark</p>
+</dd>
+<dt><strong>temp :</strong></dt>
+<dd><p class="first last">The temperature of the material</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
