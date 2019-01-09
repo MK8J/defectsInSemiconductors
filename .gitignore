@@ -1,6 +1,5 @@
 build/
 dist/
-docs/build
 docs/source/_theme
 
 primerize.egg-info/
