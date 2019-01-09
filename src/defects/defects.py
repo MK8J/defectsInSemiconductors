@@ -96,11 +96,10 @@ class SingleLevel():
 
         We can see the change on a defect we now define. Note this is an unusual defect as it has a possible charges of +1 or -1. This is just used now as it makes the example simplier
 
-        >>> s = SingleDefect(Ed=0, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12, occupied_charge=-1, unoccupied_charge=1)
-
         As a function of the Fermi energy level. It should be negative
         the higher the fermi energy level
 
+        >>> s = SingleLevel(Ed=0, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12, occupied_charge=-1, unoccupied_charge=1)
         >>> print('{0:.2e}'.format(s.net_charge(0.3,300)))
         -1.00e+12
 
@@ -138,27 +137,27 @@ class SingleLevel():
 
         for a defect in the lower half of the band gap in an n-type material it should be full of electrons. So we get the first state empty, and the second state full
 
-        >>> s = SingleDefect(Ed=-0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+        >>> s = SingleLevel(Ed=-0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print(s.charge_state_concentration(0.3, 300))
         [3.98443584e+03 9.99999996e+11]
 
         if we reverse the defect and fermi level, we reverse the occupation
 
-        >>> s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+        >>> s = SingleLevel(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print(s.charge_state_concentration(-0.3, 300))
         [9.99999996e+11 3.98443584e+03]
 
         for a defect level equal to the fermi energy level the occupations is 50%.
 
-        >>> s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+        >>> s = SingleLevel(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print(s.charge_state_concentration(0.2, 300))
         [5.e+11 5.e+11]
 
         Finially we can also provide both a hole and electron fermi energy level
 
-        >>> s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+        >>> s = SingleLevel(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print(s.charge_state_concentration([0.4,0.2], 300))
-        [4.36472835e+08 9.99563527e+11]
+        [4.36472821e+08 9.99563527e+11]
         '''
 
         ratio = np.cumprod(np.append(1, self.occupation_ratio_SS(Ef, temp)))
@@ -186,26 +185,26 @@ class SingleLevel():
 
         When Ef = Ed the occupation ratio should be 1, i.e. the defects occupy the same number
 
-        >>> s = SingleDefect(Ed=0., sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+        >>> s = SingleLevel(Ed=0., sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print('n_de = {0:.2f}'.format(s.occupation_ratio_SS(0, 300)))
         n_de = 1.00
 
-        Moreover, for symetric capture cross sections and a defect at midgap, if a symetric splitting occurs we maintain the even occupation.
+        Moreover, for symetric capture cross sections and a defect at midgap, if a symetric splitting occurs we get
 
         >>> print('n_de = {0:.2f}'.format(s.occupation_ratio_SS([0.3,-0.3], 300)))
-        n_de = 1.00
+        n_de = 1.21
 
 
         If we move away from midgap, this doesn't hold
 
-        >>> s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+        >>> s = SingleLevel(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print('n_de = {0:.2f}'.format(s.occupation_ratio_SS([0.3,-0.3], 300)))
-        n_de = 0.98
+        n_de = 1.18
 
         But if we again make the splitting even around the defect, it works!
 
         >>> print('n_de = {0:.0f}'.format(s.occupation_ratio_SS([0.4,-0.2], 300)))
-        n_de = 1145
+        n_de = 1255
         '''
         k = self.sigma_e / self.sigma_h * self.vth_e / self.vth_h
 
@@ -259,13 +258,13 @@ class SingleLevel():
         Examples
         --------
         We can get this value by either providing a float
-        >>> s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+        >>> s = SingleLevel(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print('{0:.2e}'.format(s.recombination_SS(0.3,-0.3, 300, 1e10)))
         1.00e+20
 
         Or a list of fermi energy levels
         if we reduce the capture cross sections we get less recombiation
-        >>> s = SingleDefect(Ed=0, sigma_e=1e-15, sigma_h=1e-15, Nd = 1e12)
+        >>> s = SingleLevel(Ed=0, sigma_e=1e-15, sigma_h=1e-15, Nd = 1e12)
         >>> print(s.recombination_SS([0.3,0],[0,-0.3], 300, 1e10))
         [1.68994373e+14 2.04991721e+14]
         '''
@@ -364,7 +363,7 @@ class SingleLevel():
         '''
         The minimum lifetime of electrons
 
-        >>> s = SingleDefect(Ed=0, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+        >>> s = SingleLevel(Ed=0, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print('{0:.2e} us'.format(s.tau_emin))
         4.88e-06 us
         '''
@@ -387,7 +386,7 @@ class SingleLevel():
         '''
         The minimum lifetime of holes
 
-        >>> s = SingleDefect(Ed=0, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+        >>> s = SingleLevel(Ed=0, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print('{0:.2e} us'.format(s.tau_hmin))
         5.92e-06 us
         '''

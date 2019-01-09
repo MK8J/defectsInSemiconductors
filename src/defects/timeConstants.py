@@ -355,3 +355,8 @@ def HornbeckHanes_simplified(Ed, sigma_e, sigma_h, ni, ne0, nh0, temp, tau_bkg):
 
     HH_s = tau_d + tau_bkg * tau_d / tau_t
     return HH_s
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

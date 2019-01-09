@@ -458,3 +458,8 @@ class Sample():
                     [Vt * np.log(ne_i / ni), -Vt * np.log(nh_i / ni)], temp)))
 
         return ne, nh, nd
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
