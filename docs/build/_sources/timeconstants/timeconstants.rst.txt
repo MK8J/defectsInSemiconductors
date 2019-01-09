@@ -1,0 +1,13 @@
+
+
+Trapping time constants
+=======================
+
+This module allows for simple calculation of trapping time constants.
+
+
+.. automodule:: defects.timeConstants
+  :members:
+
+
+.. |cm-3| replace:: cm\ `-3`:sup:
