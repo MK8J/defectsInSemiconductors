@@ -1,8 +1,0 @@
-dist/
-primerize.egg-info/
-*.pyc
-
-/.nojekyll
-/*.js
-/objects.inv
-_sources/

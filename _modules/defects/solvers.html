@@ -1,0 +1,845 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>defects.solvers &#8212; simulation of defects in semiconductor 0.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for defects.solvers</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">odeint</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">odeint</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">defects</span>
+
+
+<div class="viewcode-block" id="transient_decay"><a class="viewcode-back" href="../../solver/solvers.html#defects.solvers.transient_decay">[docs]</a><span class="k">def</span> <span class="nf">transient_decay</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">nxc</span><span class="p">,</span> <span class="n">t_stepf</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">t_stepNo</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nxc_min</span><span class="o">=</span><span class="mf">1e8</span><span class="p">,</span> <span class="n">G_ss</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    calculates a transient decay from an inital steady state condition.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    s : (sample class)</span>
+<span class="sd">        the sample class</span>
+<span class="sd">    nxc : (float)</span>
+<span class="sd">        The steady state number of excess carrier from which the decay states</span>
+<span class="sd">    t_stepf : (numebr, optional)</span>
+<span class="sd">        The step size of the numerical solution compared to the lowest of the SRH and radiative Lifetime</span>
+<span class="sd">    t_stopNo : (number, optional)</span>
+<span class="sd">        The number of time steps to take</span>
+<span class="sd">    auto : (bool)</span>
+<span class="sd">        If this is true, the simulation step size and number of steps will be increased until a desired excess carrier density is reached.</span>
+<span class="sd">    nxc_min : (float, default=1e8)</span>
+<span class="sd">        The excess carrier density at which the transient simulatulation should true and stop. This only has an impact if auto is set to true</span>
+<span class="sd">    G_ss : (float, default = 0)</span>
+<span class="sd">        Allows for a transient decay to a fixed generation rate.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ne : (array like)</span>
+<span class="sd">        concentration of electrons</span>
+<span class="sd">    nh : (array like)</span>
+<span class="sd">        concentration of holes</span>
+<span class="sd">    nd : (array like)</span>
+<span class="sd">        concentration of defect/defect states</span>
+<span class="sd">    t : (array like)</span>
+<span class="sd">        time.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">auto</span><span class="p">)</span> <span class="o">==</span> <span class="nb">bool</span>
+
+    <span class="c1"># get steady state</span>
+    <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span><span class="p">,</span> <span class="n">nd0</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">steady_state_concentraions</span><span class="p">(</span><span class="n">nxc</span><span class="o">=</span><span class="n">nxc</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">solve</span><span class="p">():</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This is just a little solver that prevents duplication if auto is used.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">dft</span><span class="p">,</span> <span class="n">defects</span><span class="o">.</span><span class="n">MultiLevel</span><span class="p">)</span> <span class="k">for</span> <span class="n">dft</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">defectlist</span><span class="p">):</span>
+
+            <span class="n">_ne</span><span class="p">,</span> <span class="n">_nh</span><span class="p">,</span> <span class="n">_t</span><span class="p">,</span> <span class="n">_nd</span> <span class="o">=</span> <span class="n">trans_multilevel</span><span class="p">(</span>
+                <span class="n">s</span><span class="p">,</span> <span class="n">ne</span><span class="o">=</span><span class="n">ne0</span><span class="p">,</span> <span class="n">nh</span><span class="o">=</span><span class="n">nh0</span><span class="p">,</span> <span class="n">ncs</span><span class="o">=</span><span class="n">nd0</span><span class="p">,</span>
+                <span class="n">G_ss</span><span class="o">=</span><span class="n">G_ss</span><span class="p">,</span> <span class="n">t_stepf</span><span class="o">=</span><span class="n">t_stepf</span><span class="p">,</span> <span class="n">t_stepNo</span><span class="o">=</span><span class="n">t_stepNo</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">dft</span><span class="p">,</span> <span class="n">defects</span><span class="o">.</span><span class="n">SingleLevel</span><span class="p">)</span> <span class="k">for</span> <span class="n">dft</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">defectlist</span><span class="p">):</span>
+
+            <span class="n">nte</span> <span class="o">=</span> <span class="p">[</span><span class="n">dft</span><span class="o">.</span><span class="n">Nd</span> <span class="k">for</span> <span class="n">dft</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">defectlist</span><span class="p">]</span>
+            <span class="n">_ne</span><span class="p">,</span> <span class="n">_nh</span><span class="p">,</span> <span class="n">_t</span><span class="p">,</span> <span class="n">_nd</span> <span class="o">=</span> <span class="n">trans2</span><span class="p">(</span>
+                <span class="n">s</span><span class="p">,</span> <span class="n">ne</span><span class="o">=</span><span class="n">ne0</span><span class="p">,</span> <span class="n">nh</span><span class="o">=</span><span class="n">nh0</span><span class="p">,</span> <span class="n">nte</span><span class="o">=</span><span class="n">nte</span><span class="p">,</span>
+                <span class="n">G_ss</span><span class="o">=</span><span class="n">G_ss</span><span class="p">,</span> <span class="n">t_stepf</span><span class="o">=</span><span class="n">t_stepf</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;somethign went wrong&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">defectlist</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">dft</span><span class="p">,</span> <span class="n">defects</span><span class="o">.</span><span class="n">MultiLevel</span><span class="p">)</span>
+                      <span class="k">for</span> <span class="n">dft</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">defectlist</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">dft</span><span class="p">,</span> <span class="n">defects</span><span class="o">.</span><span class="n">MultiLevel</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">dft</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">defectlist</span><span class="p">])</span>
+            <span class="k">pass</span>
+
+        <span class="k">return</span> <span class="n">_ne</span><span class="p">,</span> <span class="n">_nh</span><span class="p">,</span> <span class="n">_t</span><span class="p">,</span> <span class="n">_nd</span>
+
+    <span class="k">if</span> <span class="n">auto</span><span class="p">:</span>
+        <span class="n">t_stepf</span> <span class="o">=</span> <span class="n">t_stepf</span>
+
+        <span class="n">min_val</span> <span class="o">=</span> <span class="n">nxc_min</span>
+        <span class="n">nef</span> <span class="o">=</span> <span class="n">nxc</span>
+
+        <span class="k">while</span> <span class="n">nef</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">ne0</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">nh0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_val</span><span class="p">:</span>
+            <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">nd</span> <span class="o">=</span> <span class="n">solve</span><span class="p">()</span>
+            <span class="n">t_stepf</span> <span class="o">*=</span> <span class="mi">5</span>
+<span class="c1">#            t_stepNo *= 5</span>
+            <span class="n">nef</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ne</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">nh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c1">#             print(nef - min(s.ne0, s.nh0) &gt; min_val)</span>
+
+            <span class="k">if</span> <span class="n">t_stepf</span> <span class="o">&gt;</span> <span class="mf">1e11</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;could not reach minimum excess carrier density&#39;</span><span class="p">)</span>
+                <span class="n">min_val</span> <span class="o">=</span> <span class="mf">1e20</span>
+
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">auto</span><span class="p">:</span>
+
+        <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">nd</span> <span class="o">=</span> <span class="n">solve</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">nd</span><span class="p">,</span> <span class="n">t</span></div>
+
+
+<div class="viewcode-block" id="steadyState"><a class="viewcode-back" href="../../solver/solvers.html#defects.solvers.steadyState">[docs]</a><span class="k">def</span> <span class="nf">steadyState</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">nxc</span><span class="p">,</span> <span class="n">plot_carriers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>   <span class="n">plot_lifetime</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Calculates the steady state lifetime of a sample, give a specific defect.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    s : (class)</span>
+<span class="sd">        the sample class</span>
+<span class="sd">    nxc : (array like)</span>
+<span class="sd">        The excess carrier density to be evaluated</span>
+<span class="sd">    plot_carriers : (bool default  True)</span>
+<span class="sd">        determines if the function automatically plots the carriers with time</span>
+<span class="sd">    plot_lifetime : (bool default  True)</span>
+<span class="sd">        determines if the function automatically plots the lifetime as a function of excess carriers</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    gen : (numpy array, in cm^-3)</span>
+<span class="sd">        generation rate required to obtain the excess carrier density</span>
+<span class="sd">    tau : (numpy array, in seconds)</span>
+<span class="sd">        the minoirty carrier lifetime</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    define a defect</span>
+
+<span class="sd">    &gt;&gt;&gt; defect = dict(Ed=[0, -0.35], sigma_e=[3e-14, 1e-16], sigma_h=[3e-15, 1e-15], charge=[[0, -1], [0, 1]], Nd=1e12)</span>
+
+<span class="sd">    define the sample properties</span>
+
+<span class="sd">    &gt;&gt;&gt; s = Sample()</span>
+<span class="sd">    &gt;&gt;&gt; s.tau_rad = 1 # a constant bulk lifetime in seconds</span>
+<span class="sd">    &gt;&gt;&gt; s.Nacc = 0 # number acceptors in cm^-3</span>
+<span class="sd">    &gt;&gt;&gt; s.Ndon = 1e16 # number donors in cm^-3</span>
+<span class="sd">    &gt;&gt;&gt; s.temp = 300 # the sample temperature</span>
+
+<span class="sd">    This  can be also used with the single level defect class, but here we are just showing the multi level defect</span>
+
+<span class="sd">    &gt;&gt;&gt; s.defectlist = MultiLevelDefect(Ed=defect[&#39;Ed&#39;], sigma_e=defect[&#39;sigma_e&#39;], sigma_h=defect[&#39;sigma_h&#39;], Nd=defect[&#39;Nd&#39;], charge=defect[&#39;charge&#39;])</span>
+
+
+<span class="sd">    &gt;&gt;&gt; nxc = 1e13</span>
+<span class="sd">    &gt;&gt;&gt; gen,tau = steadyState(s, nxc, plot_carriers=False,   plot_lifetime=False)</span>
+<span class="sd">    &gt;&gt;&gt; print(&#39;gen = {0:.2e}cm^-3 \t tau = {1:.2e}s&#39;.format(gen[0], tau[0]))</span>
+<span class="sd">    gen = 5.06e+17cm^-3        tau = 1.97e-05s</span>
+<span class="sd">    &gt;&gt;&gt; plt.cla()</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nxc</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="n">nxc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nxc</span><span class="p">])</span>
+
+    <span class="n">nd</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">equlibrium_concentrations</span><span class="p">()</span>
+    <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span><span class="p">,</span> <span class="n">nd0</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">steady_state_concentraions</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">nd</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">steady_state_concentraions</span><span class="p">(</span><span class="n">nxc</span><span class="o">=</span><span class="n">nxc</span><span class="p">)</span>
+
+    <span class="c1"># define the generation</span>
+    <span class="n">nd</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">ne</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nd</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">ne</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+    <span class="k">if</span> <span class="n">plot_carriers</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">nh</span> <span class="o">-</span> <span class="n">nh0</span><span class="p">,</span> <span class="n">ne</span> <span class="o">-</span> <span class="n">ne0</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;electonrs&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">nh</span> <span class="o">-</span> <span class="n">nh0</span><span class="p">,</span> <span class="n">nh</span> <span class="o">-</span> <span class="n">nh0</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;holes&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">nh</span> <span class="o">-</span> <span class="n">nh0</span><span class="p">,</span> <span class="n">nd</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;defects&#39;</span><span class="p">)</span>
+        <span class="c1"># plt.plot(nh - nh0, nd, &#39;:&#39;, label=&#39;defect!&#39;)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Number of excess carriers&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Number of carriers&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">qEfe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ne</span> <span class="o">/</span> <span class="n">s</span><span class="o">.</span><span class="n">ni</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span><span class="o">.</span><span class="n">Vt</span>
+    <span class="n">qEfh</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nh</span> <span class="o">/</span> <span class="n">s</span><span class="o">.</span><span class="n">ni</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span><span class="o">.</span><span class="n">Vt</span>
+
+    <span class="n">rec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nxc</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">defectlist</span><span class="p">:</span>
+        <span class="n">rec</span> <span class="o">+=</span> <span class="n">i</span><span class="o">.</span><span class="n">recombination_SS</span><span class="p">(</span><span class="n">qEfe</span><span class="p">,</span> <span class="n">qEfh</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">temp</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">ni</span><span class="p">)</span>
+
+    <span class="n">rec</span> <span class="o">+=</span> <span class="n">nxc</span> <span class="o">/</span> <span class="n">s</span><span class="o">.</span><span class="n">tau_rad</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">defectlist</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;recombination_SS_ateachlevel&#39;</span><span class="p">):</span>
+        <span class="n">lr</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">defectlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">recombination_SS_ateachlevel</span><span class="p">(</span>
+            <span class="n">qEfe</span><span class="p">,</span> <span class="n">qEfh</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">temp</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">ni</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">plot_lifetime</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="s1">&#39;life&#39;</span><span class="p">)</span>
+<span class="c1">#         plt.plot(nxc, (nh - nh0) / rec, &#39;r.-&#39;)</span>
+<span class="c1">#         plt.plot(nxc, (ne - ne0) / rec, &#39;g.-&#39;)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">nxc</span><span class="p">,</span> <span class="p">(</span><span class="n">nxc</span><span class="p">)</span> <span class="o">/</span> <span class="n">rec</span><span class="p">,</span> <span class="s1">&#39;b--&#39;</span><span class="p">)</span>
+        <span class="c1"># plt.plot(nh - nh0, ((nh - nh0) / lr.T).T, &#39;--&#39;)</span>
+        <span class="c1"># plt.plot(nh - nh0, (nh - nh0) / rec)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;excess carrier density (cm^-3)&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">rec</span><span class="p">,</span> <span class="n">nxc</span> <span class="o">/</span> <span class="n">rec</span></div>
+
+    <span class="c1"># plt.loglog()</span>
+
+    <span class="c1"># plt.ylim(0.5e-6)</span>
+
+    <span class="c1"># plt.plot(ne - ne0, nd[:, 0])</span>
+    <span class="c1"># plt.semilogy()</span>
+
+
+<div class="viewcode-block" id="squareWavePulse"><a class="viewcode-back" href="../../solver/solvers.html#defects.solvers.squareWavePulse">[docs]</a><span class="k">def</span> <span class="nf">squareWavePulse</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">t_stepf</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">t_stepNo</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">Gss</span><span class="o">=</span><span class="mf">1e20</span><span class="p">,</span> <span class="n">plot_carriers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>   <span class="n">plot_lifetime</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This is a function to determine what happens to a semiconductors in 0D when</span>
+<span class="sd">    illumination with a square wave of light.</span>
+<span class="sd">    This runs a square wave pulse, cals the components and cals lifeimte</span>
+
+<span class="sd">    This is basiccally a wrapper around trans_multilevel(), to make this specific simulations easier.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    s : class</span>
+<span class="sd">        the sample class</span>
+<span class="sd">    t_stepf : (float, defualt 500, uniltess)</span>
+<span class="sd">        The time step taking in ht numerical simulations. It is the ratio to the minoirty carrier Lifetime</span>
+<span class="sd">    t_stepNo : (float, default=1000, unitless)</span>
+<span class="sd">        The number of time steps taken</span>
+<span class="sd">    Gss : (float, defualy=1e20, photons)</span>
+<span class="sd">        the illumination intensity.</span>
+<span class="sd">    plot_carriers : (bool, default=True)</span>
+<span class="sd">        creats a plot of the carriers with time</span>
+<span class="sd">    plot_lifeimte : (bool, default=True)</span>
+<span class="sd">        creates a plot of lifetime</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ne : (1D, array like)</span>
+<span class="sd">        number of electrons for each time step</span>
+<span class="sd">    nh : (1D, array like)</span>
+<span class="sd">        number of holes for each time step</span>
+<span class="sd">    nd : (nD, array like)</span>
+<span class="sd">        occupation of defects in the posisble states. The n comes from the number of states in a defect.</span>
+<span class="sd">    t : (array like)</span>
+<span class="sd">        the time</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># put in it the simulation</span>
+    <span class="c1"># s._defectlist = []</span>
+    <span class="c1"># s.defectlist = MultiLevelDefect(Ed=defect[&#39;Ed&#39;],</span>
+    <span class="c1">#                                 sigma_e=defect[&#39;sigma_e&#39;],</span>
+    <span class="c1">#                                 sigma_h=defect[&#39;sigma_h&#39;],</span>
+    <span class="c1">#                                 charge=defect[&#39;charge&#39;],</span>
+    <span class="c1">#                                 Nd=defect[&#39;Nd&#39;])</span>
+
+    <span class="c1"># get the dark carrier density</span>
+    <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">equlibrium_concentrations</span><span class="p">()</span>
+    <span class="c1"># print(&#39;ne0 {0:.2e}, nho {1:.2e}&#39;.format(ne0, nh0))</span>
+
+    <span class="n">ncs</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">defectlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">charge_state_concentration</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">Ef</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">temp</span><span class="p">)</span>
+
+    <span class="c1"># solve under light</span>
+    <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">other</span> <span class="o">=</span> <span class="n">trans_multilevel</span><span class="p">(</span>
+        <span class="n">s</span><span class="p">,</span> <span class="n">ne</span><span class="o">=</span><span class="n">ne0</span><span class="p">,</span> <span class="n">nh</span><span class="o">=</span><span class="n">nh0</span><span class="p">,</span> <span class="n">ncs</span><span class="o">=</span><span class="n">ncs</span><span class="p">,</span> <span class="n">G_ss</span><span class="o">=</span><span class="n">Gss</span><span class="p">,</span>
+        <span class="n">t_stepf</span><span class="o">=</span><span class="n">t_stepf</span><span class="p">,</span> <span class="n">t_stepNo</span><span class="o">=</span><span class="n">t_stepNo</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">plot_carriers</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="s1">&#39;carriers&#39;</span><span class="p">)</span>
+        <span class="n">p1</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">ne</span><span class="p">)</span>
+        <span class="n">p2</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">nh</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">)</span>
+
+    <span class="c1"># solve for dark</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">nef</span> <span class="o">=</span> <span class="mf">1e20</span>
+    <span class="n">t_stepf</span> <span class="o">=</span> <span class="mi">1000</span>
+
+    <span class="n">min_val</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">)</span>
+    <span class="n">min_val</span> <span class="o">=</span> <span class="mf">1e8</span>
+
+    <span class="k">while</span> <span class="n">nef</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_val</span><span class="p">:</span>
+        <span class="n">_ne</span><span class="p">,</span> <span class="n">_nh</span><span class="p">,</span> <span class="n">_t</span><span class="p">,</span> <span class="n">_other</span> <span class="o">=</span> <span class="n">trans_multilevel</span><span class="p">(</span>
+            <span class="n">s</span><span class="p">,</span> <span class="n">ne</span><span class="o">=</span><span class="n">ne</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">nh</span><span class="o">=</span><span class="n">nh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">ncs</span><span class="o">=</span><span class="n">other</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span>
+            <span class="n">G_ss</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t_stepf</span><span class="o">=</span><span class="n">t_stepf</span><span class="p">,</span> <span class="n">t_stepNo</span><span class="o">=</span><span class="n">t_stepNo</span><span class="p">)</span>
+
+        <span class="n">nef</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">_ne</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">_nh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">t_stepf</span> <span class="o">*=</span> <span class="mi">5</span>
+        <span class="n">t_stepNo</span> <span class="o">*=</span> <span class="mi">5</span>
+
+    <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">other</span> <span class="o">=</span> <span class="n">_ne</span><span class="p">,</span> <span class="n">_nh</span><span class="p">,</span> <span class="n">_t</span><span class="p">,</span> <span class="n">_other</span>
+
+    <span class="k">if</span> <span class="n">plot_carriers</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="s1">&#39;carriers&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">t0</span><span class="p">,</span> <span class="n">ne</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">p1</span><span class="o">.</span><span class="n">_color</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">t0</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">p2</span><span class="o">.</span><span class="n">_color</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">p0</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">t0</span><span class="p">,</span> <span class="n">other</span><span class="p">[:,</span> <span class="n">c</span><span class="p">],</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">p0</span><span class="o">.</span><span class="n">_color</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">plot_carriers</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="s1">&#39;carriers&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">t0</span><span class="p">,</span> <span class="n">ne0</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">p1</span><span class="o">.</span><span class="n">_color</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">t0</span><span class="p">,</span> <span class="n">nh0</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">p2</span><span class="o">.</span><span class="n">_color</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">p0</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">t0</span><span class="p">,</span> <span class="n">ncs</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">p0</span><span class="o">.</span><span class="n">_color</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;time (s)&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;carrier density (cm^-3)&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plot_lifetime</span><span class="p">:</span>
+
+        <span class="c1"># cal lifetime for the decay</span>
+        <span class="c1"># dn_pc = (ne + nh - ne[-1] - nh[-1]) / 2</span>
+        <span class="n">dn_pc_n0</span> <span class="o">=</span> <span class="p">(</span><span class="n">ne</span> <span class="o">+</span> <span class="n">nh</span> <span class="o">-</span> <span class="n">ne0</span> <span class="o">-</span> <span class="n">nh0</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="c1"># cal PL</span>
+        <span class="n">pl</span> <span class="o">=</span> <span class="p">(</span><span class="n">ne</span> <span class="o">*</span> <span class="n">nh</span> <span class="o">-</span> <span class="n">ne0</span> <span class="o">*</span> <span class="n">nh0</span><span class="p">)</span>
+        <span class="n">dn_pl</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">s</span><span class="o">.</span><span class="n">doping</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">doping</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">pl</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error in finial value e&#39;</span><span class="p">,</span>
+              <span class="p">(</span><span class="n">ne0</span> <span class="o">-</span> <span class="n">ne</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">ne0</span><span class="p">,</span> <span class="s1">&#39; h&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">nh0</span> <span class="o">-</span> <span class="n">nh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">nh0</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="s1">&#39;lifetime&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ne</span> <span class="o">-</span> <span class="n">ne0</span><span class="p">,</span> <span class="o">-</span><span class="p">(</span><span class="n">ne</span> <span class="o">-</span> <span class="n">ne0</span><span class="p">)</span> <span class="o">/</span>
+                 <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">ne</span> <span class="o">-</span> <span class="n">ne0</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Electrons&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">nh</span> <span class="o">-</span> <span class="n">nh0</span><span class="p">,</span> <span class="o">-</span><span class="p">(</span><span class="n">nh</span> <span class="o">-</span> <span class="n">nh0</span><span class="p">)</span> <span class="o">/</span>
+                 <span class="c1">#                  np.gradient(nh - nh0, t), label=&#39;holes&#39;)</span>
+                 <span class="c1">#         plt.plot(nh - nh0, -(nh) /</span>
+                 <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">nh</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;holes&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">()</span>
+        <span class="c1"># skip = dn_pc_n0.shape[0] // 1000</span>
+        <span class="c1"># p1 = plt.plot(dn_pc_n0[::skip], (dn_pc_n0)[::skip] /</span>
+        <span class="c1">#               (0 - np.gradient(dn_pc_n0, t))[::skip], &#39;.&#39;, label=&#39;PC&#39;)</span>
+        <span class="c1"># p1 = plt.plot(dn_pl[::skip], (dn_pl)[::skip] /</span>
+        <span class="c1">#               (0 - np.gradient(dn_pl, t))[::skip], &#39;:&#39;, label=&#39;PL&#39;)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;excess carrier density (cm^-3)&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;lifetime (s)&#39;</span><span class="p">)</span>
+        <span class="c1"># plt.loglog()</span>
+        <span class="c1"># plt.ylim(top=1e-3)</span>
+        <span class="c1"># plt.xlim(left=1e5)</span>
+        <span class="c1"># plt.legend(loc=0)</span>
+
+    <span class="k">return</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">t</span></div>
+
+
+<div class="viewcode-block" id="trans"><a class="viewcode-back" href="../../solver/solvers.html#defects.solvers.trans">[docs]</a><span class="k">def</span> <span class="nf">trans</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">nte</span><span class="p">,</span> <span class="n">G_ss</span><span class="o">=</span><span class="mf">1e22</span><span class="p">,</span> <span class="n">t_stepf</span><span class="o">=</span><span class="mi">2000</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A function that calculates the carrier density with time, under transient conditions.</span>
+<span class="sd">    You need to provide the carrier density at which the simulations starts, and the</span>
+<span class="sd">    illumination intensity under which the carriers being subjected to.</span>
+
+<span class="sd">    This function allows easy passing of the samples class.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sample: (class)</span>
+<span class="sd">        An instance of the sample class</span>
+<span class="sd">    ne: (float)</span>
+<span class="sd">        the inital number of free electrons</span>
+<span class="sd">    nh: (float)</span>
+<span class="sd">        the inital number of free holes</span>
+<span class="sd">    nte: (float)</span>
+<span class="sd">        the inital number of electrons in the defect</span>
+<span class="sd">    G_ss: (float)</span>
+<span class="sd">        The generation rate at which the decay ends at. This assumes the sample</span>
+<span class="sd">        is in steady state at the start of the decay.</span>
+<span class="sd">    t_stepf: (float)</span>
+<span class="sd">        t_stepf is the mutlipler to the smallest lifetime that is used as the length of the simulation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ne: (array)</span>
+<span class="sd">        the number of free electrons with time</span>
+<span class="sd">    nh: (array)</span>
+<span class="sd">        the number of holes electrons with time</span>
+<span class="sd">    t: (array)</span>
+<span class="sd">        the time</span>
+<span class="sd">    nte: (array)</span>
+<span class="sd">        the electrons in the traps</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">return</span> <span class="n">_SRH_trans2</span><span class="p">(</span><span class="n">ne</span><span class="o">=</span><span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="o">=</span><span class="n">nh</span><span class="p">,</span> <span class="n">nte</span><span class="o">=</span><span class="n">nte</span><span class="p">,</span> <span class="n">Nacc</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">Nacc</span><span class="p">,</span>
+                       <span class="n">Ndon</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">Ndon</span><span class="p">,</span>
+                       <span class="n">ni</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">ni</span><span class="p">,</span>
+                       <span class="n">temp</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">temp</span><span class="p">,</span>
+                       <span class="n">dft_list</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">defectlist</span><span class="p">,</span> <span class="n">bkg_tau</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">tau_rad</span><span class="p">,</span>
+                       <span class="n">G_ss</span><span class="o">=</span><span class="n">G_ss</span><span class="p">,</span> <span class="n">t_stepf</span><span class="o">=</span><span class="n">t_stepf</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="trans_multilevel"><a class="viewcode-back" href="../../solver/solvers.html#defects.solvers.trans_multilevel">[docs]</a><span class="k">def</span> <span class="nf">trans_multilevel</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">ncs</span><span class="p">,</span> <span class="n">G_ss</span><span class="o">=</span><span class="mf">1e22</span><span class="p">,</span> <span class="n">t_stepf</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">t_stepNo</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A function that calculates the carrier density with time, under transient conditions.</span>
+<span class="sd">    You need to provide the carrier density at which the simulations starts, and the</span>
+<span class="sd">    illumination intensity under which the carriers being subjected to.</span>
+
+<span class="sd">    This function allows easy passing of the samples class.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sample: (class)</span>
+<span class="sd">        An instance of the sample class</span>
+<span class="sd">    ne: (float)</span>
+<span class="sd">        the inital number of free electrons</span>
+<span class="sd">    nh: (float)</span>
+<span class="sd">        the inital number of free holes</span>
+<span class="sd">    ncs: (float)</span>
+<span class="sd">        the fraction of each charge state</span>
+<span class="sd">    G_ss: (float)</span>
+<span class="sd">        The generation rate at which the decay ends at. This assumes the sample</span>
+<span class="sd">        is in steady state at the start of the decay.</span>
+<span class="sd">    t_stepf: (float)</span>
+<span class="sd">        t_stepf is the mutlipler to the smallest lifetime that is used as the length of the simulation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ne: (array)</span>
+<span class="sd">        the number of free electrons with time</span>
+<span class="sd">    nh: (array)</span>
+<span class="sd">        the number of holes electrons with time</span>
+<span class="sd">    t: (array)</span>
+<span class="sd">        the time</span>
+<span class="sd">    ncs: (array)</span>
+<span class="sd">        the charge state of the defect</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">return</span> <span class="n">_SRH_trans_multi</span><span class="p">(</span><span class="n">ne</span><span class="o">=</span><span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="o">=</span><span class="n">nh</span><span class="p">,</span> <span class="n">ncs</span><span class="o">=</span><span class="n">ncs</span><span class="p">,</span> <span class="n">Nacc</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">Nacc</span><span class="p">,</span>
+                            <span class="n">Ndon</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">Ndon</span><span class="p">,</span> <span class="n">ni</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">temp</span><span class="p">,</span>
+                            <span class="n">dft_list</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">defectlist</span><span class="p">,</span> <span class="n">bkg_tau</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">tau_rad</span><span class="p">,</span>
+                            <span class="n">G_ss</span><span class="o">=</span><span class="n">G_ss</span><span class="p">,</span> <span class="n">t_stepf</span><span class="o">=</span><span class="n">t_stepf</span><span class="p">,</span>  <span class="n">t_stepNo</span><span class="o">=</span><span class="n">t_stepNo</span><span class="p">,</span> <span class="n">ne0</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span><span class="o">=</span><span class="n">sample</span><span class="o">.</span><span class="n">nh0</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_SRH_trans</span><span class="p">(</span><span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">nte</span><span class="p">,</span>  <span class="n">Nacc</span><span class="p">,</span> <span class="n">Ndon</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">dft_list</span><span class="p">,</span> <span class="n">bkg_tau</span><span class="p">,</span> <span class="n">G_ss</span><span class="o">=</span><span class="mf">1e22</span><span class="p">,</span> <span class="n">t_stepf</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">t_stepNo</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Solve the excess carrier density with time. It assumes the</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ne: (float)</span>
+<span class="sd">        the inital number of electonrs</span>
+<span class="sd">    nh: (float)</span>
+<span class="sd">        the inital number of holes</span>
+<span class="sd">    nte:</span>
+<span class="sd">        the inital number of electrons in the defect</span>
+<span class="sd">    Na: (float)</span>
+<span class="sd">        the number of ionised acceptors</span>
+<span class="sd">    Nd: (float)</span>
+<span class="sd">        the number of ionised donors</span>
+<span class="sd">    ni: (float)</span>
+<span class="sd">        The intrinsic carrier density</span>
+<span class="sd">    temp: (float, Kelvin)</span>
+<span class="sd">        the temperature</span>
+<span class="sd">    dft_list: (list)</span>
+<span class="sd">        A defect list from the srh class.</span>
+<span class="sd">    bkg_tau: (float, s)</span>
+<span class="sd">        A constant background recombiation Lifetime</span>
+<span class="sd">    G_ss: (float)</span>
+<span class="sd">        The generation rate to which the transient condition converges</span>
+<span class="sd">    t_stepf: (float)</span>
+<span class="sd">        a the mutlipler that controls the size of time step. Change this value is things look strange.</span>
+<span class="sd">    t_stepNo: (float)</span>
+<span class="sd">        number of time steps</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">SRH_fitting</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">G</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            y : [ne, nh, nte]</span>
+<span class="sd">            t : time</span>
+<span class="sd">            G : generation rate</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># grab the electron and hole conc, the defect conc is grabbed below.</span>
+        <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Adjust the generation by the recombiation</span>
+        <span class="k">if</span> <span class="n">bkg_tau</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">G</span> <span class="o">-=</span> <span class="p">(</span><span class="n">ne</span> <span class="o">-</span> <span class="n">ne0</span><span class="p">)</span> <span class="o">/</span> <span class="n">bkg_tau</span>
+
+        <span class="c1"># for no defects there is no change.</span>
+        <span class="n">emitted_e</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">emitted_h</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">captured_e</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">captured_h</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># iterate over all the defects in the list</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">dft</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dft_list</span><span class="p">):</span>
+            <span class="n">nte</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span>
+            <span class="n">emitted_e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dft</span><span class="o">.</span><span class="n">emitted_e</span><span class="p">(</span><span class="n">nte</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">))</span>
+            <span class="n">emitted_h</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dft</span><span class="o">.</span><span class="n">emitted_h</span><span class="p">(</span><span class="n">nte</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">))</span>
+
+            <span class="n">captured_e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dft</span><span class="o">.</span><span class="n">capture_e</span><span class="p">(</span><span class="n">ne</span><span class="p">,</span> <span class="n">nte</span><span class="p">))</span>
+            <span class="n">captured_h</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dft</span><span class="o">.</span><span class="n">capture_h</span><span class="p">(</span><span class="n">nh</span><span class="p">,</span> <span class="n">nte</span><span class="p">))</span>
+        <span class="c1"># all those changes result in</span>
+        <span class="n">dne</span> <span class="o">=</span> <span class="n">G</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">captured_e</span><span class="p">)</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">emitted_e</span><span class="p">)</span>
+        <span class="n">dnh</span> <span class="o">=</span> <span class="n">G</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">captured_h</span><span class="p">)</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">emitted_h</span><span class="p">)</span>
+
+        <span class="n">dydt</span> <span class="o">=</span> <span class="p">[</span><span class="n">dne</span><span class="p">,</span> <span class="n">dnh</span><span class="p">]</span>
+
+        <span class="c1"># put the change in the defects into one thingo</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">emitted_e</span><span class="p">)):</span>
+            <span class="n">dydt</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span> <span class="n">captured_h</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">emitted_h</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span>
+                        <span class="n">captured_e</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">emitted_e</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">dydt</span>
+
+    <span class="c1"># build the input vectors</span>
+
+    <span class="c1"># get the dark concentration of each carrier</span>
+    <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span><span class="p">,</span> <span class="n">nte0</span> <span class="o">=</span> <span class="n">_dark_carrier_concs_many</span><span class="p">(</span><span class="n">Ndon</span><span class="p">,</span> <span class="n">Nacc</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">dft_list</span><span class="p">)</span>
+
+    <span class="c1"># get all the recombiation sources</span>
+    <span class="n">_temp_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">bkg_tau</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">dft</span> <span class="ow">in</span> <span class="n">dft_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Nacc</span> <span class="o">&gt;</span> <span class="n">Ndon</span><span class="p">:</span>
+            <span class="n">_temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dft</span><span class="o">.</span><span class="n">tau_hmin</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dft</span><span class="o">.</span><span class="n">tau_emin</span><span class="p">)</span>
+
+    <span class="n">_tau</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">_temp</span> <span class="k">for</span> <span class="n">_temp</span> <span class="ow">in</span> <span class="n">_temp_list</span> <span class="k">if</span> <span class="n">_temp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># an array of time.</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">_tau</span> <span class="o">*</span> <span class="n">t_stepf</span><span class="p">,</span> <span class="n">t_stepNo</span><span class="p">)</span>
+
+    <span class="c1"># set the inital conditions</span>
+    <span class="n">y0</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ne</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nh</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)]</span>
+    <span class="c1"># now add the defects</span>
+    <span class="k">for</span> <span class="n">dft</span> <span class="ow">in</span> <span class="n">nte</span><span class="p">:</span>
+        <span class="n">y0</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dft</span><span class="p">)</span>
+
+    <span class="c1"># Solve for the steady state illumination condition</span>
+    <span class="c1"># sol0 = solve_ivp(SRH_fitting, t, y0, rtol=0.0000001)</span>
+    <span class="c1"># print(type(y0), type(t), type(G_ss))</span>
+    <span class="c1"># print(y0)</span>
+    <span class="n">sol0</span> <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">SRH_fitting</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span>  <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">G_ss</span><span class="p">,),</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">0.0000001</span><span class="p">)</span>
+
+    <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span> <span class="o">=</span> <span class="n">sol0</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">sol0</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">sol0</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_SRH_trans_multi</span><span class="p">(</span><span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">ncs</span><span class="p">,</span>  <span class="n">Nacc</span><span class="p">,</span> <span class="n">Ndon</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">dft_list</span><span class="p">,</span> <span class="n">bkg_tau</span><span class="p">,</span> <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span><span class="p">,</span> <span class="n">G_ss</span><span class="o">=</span><span class="mf">1e22</span><span class="p">,</span> <span class="n">t_stepf</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">t_stepNo</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Solve the excess carrier density with time. It assumes the</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ne : (float)</span>
+<span class="sd">        the inital number of electonrs</span>
+<span class="sd">    nh: (float)</span>
+<span class="sd">        the inital number of holes</span>
+<span class="sd">    ncs: (array)</span>
+<span class="sd">        the number of defects in each charge state</span>
+<span class="sd">    Nacc: (float)</span>
+<span class="sd">        the number of ionised acceptors</span>
+<span class="sd">    Ndon: (float)</span>
+<span class="sd">        the number of ionised donors</span>
+<span class="sd">    ni: (float)</span>
+<span class="sd">        The intrinsic carrier density</span>
+<span class="sd">    temp: (float, Kelvin)</span>
+<span class="sd">        the temperature</span>
+<span class="sd">    dft_list: (list)</span>
+<span class="sd">        A defect list from the srh class.</span>
+<span class="sd">    bkg_tau: (float, s)</span>
+<span class="sd">        A constant background recombiation Lifetime</span>
+<span class="sd">    G_ss: (float)</span>
+<span class="sd">        The generation rate to which the transient condition converges</span>
+<span class="sd">    t_stepf: (float)</span>
+<span class="sd">        a the mutlipler that controls the size of time step. Change this value is things look strange.</span>
+<span class="sd">    t_stepNo: (float)</span>
+<span class="sd">        number of time steps</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c1"># def jac_de(y, t):</span>
+    <span class="c1">#     &#39;&#39;&#39;</span>
+    <span class="c1"># The dream of getting a jocobian done.</span>
+    <span class="c1">#     Currently this only works for a single defect, thought that defect can have multiple levels.</span>
+    <span class="c1">#</span>
+    <span class="c1">#     The jacobian is a bunch of partial derivatives</span>
+    <span class="c1">#</span>
+    <span class="c1">#     J = [[df0/dx0 .. df0/dxm]..[dfn/dxm..dfn/dxm]]</span>
+    <span class="c1">#</span>
+    <span class="c1">#     Here that looks like:</span>
+    <span class="c1">#</span>
+    <span class="c1">#     $$d/dn_e dn_e/dt = d/dn_e( G +\Sum_{E_d} e_e - c_e)$$</span>
+    <span class="c1">#     $$d/dn_e dn_e/dt =  - \Sum_{E_d} \frac{N_{di}}{sigma_e v_{the}} $$</span>
+    <span class="c1">#</span>
+    <span class="c1">#     Similarly:</span>
+    <span class="c1">#     $$d/dn_h dn_e/dt =  0 $$</span>
+    <span class="c1">#     $$d/dN_d dn_e/dt =   \Sum_{E_d} \Beta_e-\frac{n_{e}}{sigma_e v_{the}} $$</span>
+    <span class="c1">#</span>
+    <span class="c1">#     $$d/dne dn_h/dt = 0$$</span>
+    <span class="c1">#     $$d/dnh dn_h/dt = - \Sum_{N_d} \frac{N_{di}}{sigma_h v_{thh}} $$</span>
+    <span class="c1">#     $$d/dN_d dn_h/dt = \Sum_{E_d} -\Beta_h+\frac{n_h}{sigma_h v_{thh}} $$</span>
+    <span class="c1">#     &#39;&#39;&#39;</span>
+    <span class="c1">#     dft = dft_list[0]</span>
+    <span class="c1">#     j = 0</span>
+    <span class="c1">#     i = 0  # this needs to be changed.</span>
+    <span class="c1">#</span>
+    <span class="c1">#     _ncs = np.copy(y[i + 2 + j:j + i + 2 + len(dft.Ed) + 1])</span>
+    <span class="c1">#</span>
+    <span class="c1">#     Nde = dft.emitted_e(_ncs / _ncs, ni, temp) - \</span>
+    <span class="c1">#         dft.capture_e(_ne, _ncs / _ncs)</span>
+    <span class="c1">#     Ndh = dft.emitted_h(_ncs / _ncs, ni, temp) - \</span>
+    <span class="c1">#         dft.capture_h(_ne, _ncs / _ncs)</span>
+    <span class="c1">#</span>
+    <span class="c1">#     jac = np.array([[np.sum(dft.capture_e(1, _ncs)), 0] + Nde,</span>
+    <span class="c1">#                     [0, np.sum(dft.capture_h(1, _ncs))] + Ndh])</span>
+    <span class="c1">#</span>
+    <span class="c1">#     jac_ = np.zeros((len(Ndh), len(Ndh)))</span>
+    <span class="c1">#     jac_[:, 0] = Nde</span>
+    <span class="c1">#     jac_[:, 1] = Ndh</span>
+    <span class="c1">#     for i in range(len(Ndh)):</span>
+    <span class="c1">#         jac_[i, 2 + i] = 1</span>
+    <span class="c1">#</span>
+    <span class="c1">#     return jac</span>
+    <span class="c1">#     dft.emitted_e(_ncs / _ncs, ni, temp) - dft.capture_e(_ne, _ncs / _ncs)</span>
+    <span class="c1">#     return</span>
+
+    <span class="k">def</span> <span class="nf">SRH_fitting</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">G</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            y = [ne, nh, rcs]</span>
+<span class="sd">            t is time</span>
+<span class="sd">            G is generation rate</span>
+
+<span class="sd">        $$dne/dt = G - c_e + e_e$$</span>
+<span class="sd">        $$dnh/dt = G - c_h + e_h$$</span>
+<span class="sd">        $$dN_{di}/dt = c_e - e_e - c_h + e_e$$</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># for no defects there is no change.</span>
+        <span class="n">emitted_e</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">emitted_h</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">captured_e</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">captured_h</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">emitted_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="n">emitted_h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="n">captured_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="n">captured_h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+
+        <span class="c1"># grab the electron and hole conc, the defect conc is grabbed below.</span>
+        <span class="n">_ne</span><span class="p">,</span> <span class="n">_nh</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Adjust the generation by the recombiation</span>
+        <span class="c1"># this isn&#39;t quite right and wont work for intrinsic material</span>
+        <span class="k">if</span> <span class="n">bkg_tau</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ne0</span> <span class="o">&gt;</span> <span class="n">nh0</span><span class="p">:</span>
+                <span class="n">G</span> <span class="o">-=</span> <span class="p">(</span><span class="n">_nh</span> <span class="o">-</span> <span class="n">nh0</span><span class="p">)</span> <span class="o">/</span> <span class="n">bkg_tau</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">G</span> <span class="o">-=</span> <span class="p">(</span><span class="n">_ne</span> <span class="o">-</span> <span class="n">ne0</span><span class="p">)</span> <span class="o">/</span> <span class="n">bkg_tau</span>
+
+        <span class="c1"># iterate over all the defects in the list</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># dncs_list = np.zeros((y.shape[0] - 2))</span>
+        <span class="n">dncs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">dft</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dft_list</span><span class="p">):</span>
+            <span class="n">_ncs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                <span class="n">y</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="n">counter</span><span class="p">:</span><span class="mi">2</span> <span class="o">+</span> <span class="n">counter</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">dft</span><span class="o">.</span><span class="n">Ed</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="c1"># calculate the emitted carriers</span>
+            <span class="n">_emitted_e</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">emitted_e</span><span class="p">(</span><span class="n">_ncs</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+            <span class="n">_emitted_h</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">emitted_h</span><span class="p">(</span><span class="n">_ncs</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+
+            <span class="c1"># calculate the captured carriers</span>
+            <span class="n">_captured_e</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">capture_e</span><span class="p">(</span><span class="n">_ne</span><span class="p">,</span> <span class="n">_ncs</span><span class="p">)</span>
+            <span class="n">_captured_h</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">capture_h</span><span class="p">(</span><span class="n">_nh</span><span class="p">,</span> <span class="n">_ncs</span><span class="p">)</span>
+
+            <span class="c1"># make these into a running array</span>
+            <span class="n">captured_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span>
+                <span class="n">captured_e</span><span class="p">,</span> <span class="n">_captured_e</span><span class="p">))</span>
+            <span class="n">captured_h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span>
+                <span class="n">captured_h</span><span class="p">,</span> <span class="n">_captured_h</span><span class="p">))</span>
+
+            <span class="c1"># make these into a running array</span>
+            <span class="n">emitted_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span>
+                <span class="n">emitted_e</span><span class="p">,</span> <span class="n">_emitted_e</span><span class="p">))</span>
+            <span class="n">emitted_h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span>
+                <span class="n">emitted_h</span><span class="p">,</span> <span class="n">_emitted_h</span><span class="p">))</span>
+
+            <span class="c1"># adjust for starting length in i for non multi level defects</span>
+            <span class="n">counter</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dft</span><span class="o">.</span><span class="n">Ed</span><span class="p">)</span>  <span class="c1"># - 1</span>
+
+            <span class="c1"># calculate where the defects went</span>
+            <span class="n">moveup</span> <span class="o">=</span> <span class="n">_captured_e</span> <span class="o">+</span> <span class="n">_emitted_h</span>
+            <span class="n">movedown</span> <span class="o">=</span> <span class="n">_emitted_e</span> <span class="o">+</span> <span class="n">_captured_h</span>
+
+            <span class="c1"># this has to be done here, to ensure we do not have movement between</span>
+            <span class="c1"># independent defects</span>
+            <span class="n">_dncs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">_ncs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">_dncs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="o">-</span><span class="n">moveup</span> <span class="o">+</span> <span class="n">movedown</span>
+            <span class="n">_dncs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+=</span> <span class="n">moveup</span> <span class="o">-</span> <span class="n">movedown</span>
+
+            <span class="c1"># This results in a total change:</span>
+            <span class="n">dncs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">dncs</span><span class="p">,</span> <span class="n">_dncs</span><span class="p">))</span>
+
+        <span class="c1"># all those changes result in</span>
+        <span class="n">dne</span> <span class="o">=</span> <span class="n">G</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">captured_e</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">emitted_e</span><span class="p">)</span>
+        <span class="n">dnh</span> <span class="o">=</span> <span class="n">G</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">captured_h</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">emitted_h</span><span class="p">)</span>
+
+        <span class="c1"># calculate the gradient</span>
+        <span class="n">dydt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dne</span><span class="p">,</span> <span class="n">dnh</span><span class="p">])</span>
+        <span class="n">dydt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">dydt</span><span class="p">,</span> <span class="n">dncs</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">dydt</span>
+
+    <span class="c1"># get all the recombiation sources to estimate the time step</span>
+    <span class="n">_temp_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">bkg_tau</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">dft</span> <span class="ow">in</span> <span class="n">dft_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Nacc</span> <span class="o">&lt;</span> <span class="n">Ndon</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dft</span><span class="o">.</span><span class="n">tau_hmin</span><span class="p">:</span>
+                <span class="n">_temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dft</span><span class="o">.</span><span class="n">tau_emin</span><span class="p">:</span>
+                <span class="n">_temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="c1"># this is our estimate critical time</span>
+    <span class="n">_tau</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">_temp</span> <span class="k">for</span> <span class="n">_temp</span> <span class="ow">in</span> <span class="n">_temp_list</span> <span class="k">if</span> <span class="n">_temp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="c1"># an array of time.</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">_tau</span> <span class="o">*</span> <span class="n">t_stepf</span><span class="p">,</span> <span class="n">t_stepNo</span><span class="p">)</span>
+
+    <span class="c1"># ToDO:</span>
+    <span class="c1"># make the time spacing log spaced as the decays are exponential like.</span>
+    <span class="c1"># an example would be:</span>
+    <span class="c1"># t = np.logspace(np.log10(_tau / 1000),</span>
+    <span class="c1"># np.log10(_tau * 100 * t_stepf), t_stepNo)</span>
+    <span class="c1"># t[0] = 0</span>
+    <span class="c1"># however the start point here is the issue. How close do you start to the</span>
+    <span class="c1"># minimum tau? This appears to work well and maybe another function should</span>
+    <span class="c1"># be formed.</span>
+
+    <span class="c1"># set the inital conditions</span>
+    <span class="n">y0</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ne</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nh</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)]</span>
+
+    <span class="c1"># now add the ratio of charge states. Need to weight it by the number of traps</span>
+    <span class="c1"># so the ODE function has an equal error wieght on it.</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ncs</span><span class="p">:</span>
+        <span class="n">y0</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="c1"># Solve for the steady state illumination condition</span>
+    <span class="n">sol0</span><span class="p">,</span> <span class="n">other</span> <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">SRH_fitting</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span>  <span class="n">args</span><span class="o">=</span><span class="p">(</span>
+        <span class="n">G_ss</span><span class="p">,),</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">0.0000001</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># uncomment below to see if it is stiff or not (2 is stiff)</span>
+    <span class="c1"># print(other[&#39;mused&#39;])</span>
+
+    <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span> <span class="o">=</span> <span class="n">sol0</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">sol0</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">sol0</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:]</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">simulation of defects in semiconductor</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../timeconstants/timeconstants.html">Trapping time constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../defects/defects.html">Defect Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/sample.html">Sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../solver/solvers.html">Solvers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Mattias Klaus Juhl.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,32 @@
+.. semiconductor documentation master file, created by
+   sphinx-quickstart on Mon Jul  3 15:00:21 2017.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to the documentation!
+==============================
+
+
+..   Introduction <README>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Contents:
+   :glob:
+
+
+
+   /timeconstants/timeconstants
+   /defects/defects
+   /sample/sample
+   /solver/solvers
+
+This package enables simulation of steady state and time resolved Shockley Read-Hall and Sah and Shockley defects in zero dimensions. This was created as there was no current program that simulated Sah and Shockley defects.
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

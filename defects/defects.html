@@ -1,0 +1,583 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Defect Types &#8212; simulation of defects in semiconductor 0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Sample" href="../sample/sample.html" />
+    <link rel="prev" title="Trapping time constants" href="../timeconstants/timeconstants.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="defect-types">
+<h1>Defect Types<a class="headerlink" href="#defect-types" title="Permalink to this headline">¶</a></h1>
+<p>There are two types of defects:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>A single level defect, being a Shockley Read-Hall defect</li>
+<li>A multi level defect being a Sah and Shockley defect.</li>
+</ol>
+</div></blockquote>
+<p>These are outlined in detail below.
+The difference is how many energy level or “charge states” a defect has. A Sah and Shockley defect allows more than two different charge states, which is more than one energy level. It seems that most defects are actually multi level defects.</p>
+<dl class="class">
+<dt id="defects.defects.SingleLevel">
+<em class="property">class </em><code class="descclassname">defects.defects.</code><code class="descname">SingleLevel</code><span class="sig-paren">(</span><em>Ed=None</em>, <em>tau_emin=None</em>, <em>tau_hmin=None</em>, <em>sigma_e=None</em>, <em>sigma_h=None</em>, <em>Nd=1000000000000.0</em>, <em>vth_h=16900000.0</em>, <em>vth_e=20500000.0</em>, <em>occupied_charge=-1</em>, <em>unoccupied_charge=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a Shockley Read Hall defect with two states. This is also know as a single energy level.</p>
+<dl class="docutils">
+<dt>A defect has paramters:</dt>
+<dd><ol class="first last arabic simple">
+<li>Ed, the energy level of the defect from midgap.</li>
+<li>sigma_h or tau_h. The capture cross section for holes, or the minimum hole lifetime, respecitvly.</li>
+<li>sigma_n or tau_e  The capture cross section for electrons, or the minimum electron lifetime, respecitvly.</li>
+</ol>
+</dd>
+<dt>Other things that are important are:</dt>
+<dd><ol class="first last arabic simple">
+<li>the concentration of the defect (Nd)</li>
+<li>the thermal velocities (vth_h, vth_e)</li>
+<li>The charge on the defect (occupied_charge, unoccupied_charge)</li>
+</ol>
+</dd>
+</dl>
+<p>All these are able to be set at the initialsation of the defect or later.</p>
+<dl class="method">
+<dt id="defects.defects.SingleLevel.capture_e">
+<code class="descname">capture_e</code><span class="sig-paren">(</span><em>ne</em>, <em>nde</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevel.capture_e"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevel.capture_e" title="Permalink to this definition">¶</a></dt>
+<dd><p>The capture rate of electrons</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ne</strong> – the concentration of free electrons</li>
+<li><strong>nde</strong> – the concentration of electron in the defect</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.SingleLevel.capture_h">
+<code class="descname">capture_h</code><span class="sig-paren">(</span><em>nh</em>, <em>nde</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevel.capture_h"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevel.capture_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>The capture rate of holes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nh</strong> – the concentration of free hole</li>
+<li><strong>nde</strong> – the concentration of electron in the defect</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.SingleLevel.charge_state_concentration">
+<code class="descname">charge_state_concentration</code><span class="sig-paren">(</span><em>Ef</em>, <em>temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevel.charge_state_concentration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevel.charge_state_concentration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retruns the concentration of the the charge states for a defect for specific electron and hole fermy energy levels. The states are reported with the more “positive” levels first.</p>
+<p>This is equilivant to DOI: 10.1063/1.4906465</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Ef</strong> (<em>(</em><em>float</em><em> or </em><em>list of 2 floats</em><em>, </em><em>[</em><em>Efe</em><em>, </em><em>Efh</em><em>]</em><em>, </em><em>eV</em><em>)</em>) – The Fermi energy level or list of quasi fermi energy level.
+If a list is provided it is assumed the electron quasi Fermi
+energy level is first</li>
+<li><strong>temp</strong> (<em>(</em><em>float</em><em>, </em><em>kelvin</em><em>)</em>) – temperature of the sample</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>for a defect in the lower half of the band gap in an n-type material it should be full of electrons. So we get the first state empty, and the second state full</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">SingleDefect</span><span class="p">(</span><span class="n">Ed</span><span class="o">=-</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">sigma_e</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">sigma_h</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">Nd</span> <span class="o">=</span> <span class="mf">1e12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">charge_state_concentration</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mi">300</span><span class="p">))</span>
+<span class="go">[3.98443584e+03 9.99999996e+11]</span>
+</pre></div>
+</div>
+<p>if we reverse the defect and fermi level, we reverse the occupation</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">SingleDefect</span><span class="p">(</span><span class="n">Ed</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">sigma_e</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">sigma_h</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">Nd</span> <span class="o">=</span> <span class="mf">1e12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">charge_state_concentration</span><span class="p">(</span><span class="o">-</span><span class="mf">0.3</span><span class="p">,</span> <span class="mi">300</span><span class="p">))</span>
+<span class="go">[9.99999996e+11 3.98443584e+03]</span>
+</pre></div>
+</div>
+<p>for a defect level equal to the fermi energy level the occupations is 50%.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">SingleDefect</span><span class="p">(</span><span class="n">Ed</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">sigma_e</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">sigma_h</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">Nd</span> <span class="o">=</span> <span class="mf">1e12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">charge_state_concentration</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">300</span><span class="p">))</span>
+<span class="go">[5.e+11 5.e+11]</span>
+</pre></div>
+</div>
+<p>Finially we can also provide both a hole and electron fermi energy level</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">SingleDefect</span><span class="p">(</span><span class="n">Ed</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">sigma_e</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">sigma_h</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">Nd</span> <span class="o">=</span> <span class="mf">1e12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">charge_state_concentration</span><span class="p">([</span><span class="mf">0.4</span><span class="p">,</span><span class="mf">0.2</span><span class="p">],</span> <span class="mi">300</span><span class="p">))</span>
+<span class="go">[4.36472835e+08 9.99563527e+11]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.SingleLevel.emitted_e">
+<code class="descname">emitted_e</code><span class="sig-paren">(</span><em>nde</em>, <em>ni</em>, <em>temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevel.emitted_e"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevel.emitted_e" title="Permalink to this definition">¶</a></dt>
+<dd><p>The emission rate of electrons</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nde</strong> – the concentration of electron in the defect</li>
+<li><strong>ni</strong> – the intrinsic carrier density of the semiconductor</li>
+<li><strong>temp</strong> – the temperature in Kelvin</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.SingleLevel.emitted_h">
+<code class="descname">emitted_h</code><span class="sig-paren">(</span><em>nde</em>, <em>ni</em>, <em>temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevel.emitted_h"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevel.emitted_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>The emission rate of holes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nde</strong> – the concentration of electron in the defect</li>
+<li><strong>ni</strong> – the intrinsic carrier density of the semiconductor</li>
+<li><strong>temp</strong> – the temperature in Kelvin</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.SingleLevel.net_charge">
+<code class="descname">net_charge</code><span class="sig-paren">(</span><em>Ef</em>, <em>temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevel.net_charge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevel.net_charge" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the net charge of the defect for a given temperature and
+energy level</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Ef</strong> (<em>(</em><em>float</em><em> or </em><em>list of 2 floats</em><em>, </em><em>eV</em><em>)</em>) – The Fermi energy level or list of quasi fermi energy level.
+If a list is provided it is assumed the electron quasi Fermi
+energy level is first</li>
+<li><strong>temp</strong> (<em>(</em><em>float</em><em>, </em><em>kelvin</em><em>)</em>) – temperature of the sample</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>We can see the change on a defect we now define. Note this is an unusual defect as it has a possible charges of +1 or -1. This is just used now as it makes the example simplier</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">SingleDefect</span><span class="p">(</span><span class="n">Ed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sigma_e</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">sigma_h</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">Nd</span> <span class="o">=</span> <span class="mf">1e12</span><span class="p">,</span> <span class="n">occupied_charge</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">unoccupied_charge</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As a function of the Fermi energy level. It should be negative
+the higher the fermi energy level</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0:.2e}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">net_charge</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span><span class="mi">300</span><span class="p">)))</span>
+<span class="go">-1.00e+12</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0:.2e}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">net_charge</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span><span class="mi">300</span><span class="p">)))</span>
+<span class="go">1.00e+12</span>
+</pre></div>
+</div>
+<p>It should be 0 when Ed-Ef</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0:.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">net_charge</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">300</span><span class="p">)))</span>
+<span class="go">0.00</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.SingleLevel.occupation_ratio_SS">
+<code class="descname">occupation_ratio_SS</code><span class="sig-paren">(</span><em>Ef</em>, <em>temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevel.occupation_ratio_SS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevel.occupation_ratio_SS" title="Permalink to this definition">¶</a></dt>
+<dd><p>The occupation ratio of the negitive to positive defect charge state
+This works for the general case and is the same as in Sah and Shockley 1958 paper.</p>
+<p>This is equilivant to inver alpha from DOI: 10.1063/1.4906465… well its very similar. But this is correct.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Ef</strong> (<em>(</em><em>float</em><em> or </em><em>list of 2 floats</em><em>, </em><em>eV</em><em>)</em>) – The Fermi energy level or list of quasi fermi energy level.
+If a list is provided it is assumed the electron quasi Fermi
+energy level is first</li>
+<li><strong>temp</strong> (<em>(</em><em>float</em><em>, </em><em>kelvin</em><em>)</em>) – temperature of the sample</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<p>When Ef = Ed the occupation ratio should be 1, i.e. the defects occupy the same number</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">SingleDefect</span><span class="p">(</span><span class="n">Ed</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">sigma_e</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">sigma_h</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">Nd</span> <span class="o">=</span> <span class="mf">1e12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n_de = </span><span class="si">{0:.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">occupation_ratio_SS</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">300</span><span class="p">)))</span>
+<span class="go">n_de = 1.00</span>
+</pre></div>
+</div>
+<p>Moreover, for symetric capture cross sections and a defect at midgap, if a symetric splitting occurs we maintain the even occupation.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n_de = </span><span class="si">{0:.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">occupation_ratio_SS</span><span class="p">([</span><span class="mf">0.3</span><span class="p">,</span><span class="o">-</span><span class="mf">0.3</span><span class="p">],</span> <span class="mi">300</span><span class="p">)))</span>
+<span class="go">n_de = 1.00</span>
+</pre></div>
+</div>
+<p>If we move away from midgap, this doesn’t hold</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">SingleDefect</span><span class="p">(</span><span class="n">Ed</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">sigma_e</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">sigma_h</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">Nd</span> <span class="o">=</span> <span class="mf">1e12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n_de = </span><span class="si">{0:.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">occupation_ratio_SS</span><span class="p">([</span><span class="mf">0.3</span><span class="p">,</span><span class="o">-</span><span class="mf">0.3</span><span class="p">],</span> <span class="mi">300</span><span class="p">)))</span>
+<span class="go">n_de = 0.98</span>
+</pre></div>
+</div>
+<p>But if we again make the splitting even around the defect, it works!</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n_de = </span><span class="si">{0:.0f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">occupation_ratio_SS</span><span class="p">([</span><span class="mf">0.4</span><span class="p">,</span><span class="o">-</span><span class="mf">0.2</span><span class="p">],</span> <span class="mi">300</span><span class="p">)))</span>
+<span class="go">n_de = 1145</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.SingleLevel.recombination_SS">
+<code class="descname">recombination_SS</code><span class="sig-paren">(</span><em>qEfe</em>, <em>qEfh</em>, <em>temp</em>, <em>ni</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevel.recombination_SS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevel.recombination_SS" title="Permalink to this definition">¶</a></dt>
+<dd><p>This calculates the recombiation occuring through a defect in steady state.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>qEfe</strong> (<em>(</em><em>float eV</em><em>)</em>) – The quasi Fermi energy level of electons</li>
+<li><strong>qEfh</strong> (<em>(</em><em>float eV</em><em>)</em>) – The quasi Fermi energy level of holes</li>
+<li><strong>temp</strong> (<em>(</em><em>float</em><em>, </em><em>kelvin</em><em>)</em>) – temperature of the sample</li>
+<li><strong>ni</strong> (<em>(</em><em>float</em><em>, </em><em>cm^-3</em><em>)</em>) – the intrinsic carrier density</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The emission and capture rates are the same as a shockley read hall defect.</p>
+<p>This uses the Sah and Shockley formalisation, eqn 3.19 in 10.1103/PhysRev.109.1103 but with one level, which is the same as
+Shockley dx.doi.org/10.1103/PhysRev.87.835.</p>
+<p class="rubric">Examples</p>
+<p>We can get this value by either providing a float
+&gt;&gt;&gt; s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+&gt;&gt;&gt; print(‘{0:.2e}’.format(s.recombination_SS(0.3,-0.3, 300, 1e10)))
+1.00e+20</p>
+<p>Or a list of fermi energy levels
+if we reduce the capture cross sections we get less recombiation
+&gt;&gt;&gt; s = SingleDefect(Ed=0, sigma_e=1e-15, sigma_h=1e-15, Nd = 1e12)
+&gt;&gt;&gt; print(s.recombination_SS([0.3,0],[0,-0.3], 300, 1e10))
+[1.68994373e+14 2.04991721e+14]</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="defects.defects.SingleLevel.sigma_e">
+<code class="descname">sigma_e</code><a class="headerlink" href="#defects.defects.SingleLevel.sigma_e" title="Permalink to this definition">¶</a></dt>
+<dd><p>The capture cross section of electrons</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="defects.defects.SingleLevel.sigma_h">
+<code class="descname">sigma_h</code><a class="headerlink" href="#defects.defects.SingleLevel.sigma_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>The capture cross section of holes</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="defects.defects.SingleLevel.tau_emin">
+<code class="descname">tau_emin</code><a class="headerlink" href="#defects.defects.SingleLevel.tau_emin" title="Permalink to this definition">¶</a></dt>
+<dd><p>The minimum lifetime of electrons</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">SingleDefect</span><span class="p">(</span><span class="n">Ed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sigma_e</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">sigma_h</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">Nd</span> <span class="o">=</span> <span class="mf">1e12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0:.2e}</span><span class="s1"> us&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">tau_emin</span><span class="p">))</span>
+<span class="go">4.88e-06 us</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="defects.defects.SingleLevel.tau_hmin">
+<code class="descname">tau_hmin</code><a class="headerlink" href="#defects.defects.SingleLevel.tau_hmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>The minimum lifetime of holes</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">SingleDefect</span><span class="p">(</span><span class="n">Ed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sigma_e</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">sigma_h</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">Nd</span> <span class="o">=</span> <span class="mf">1e12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0:.2e}</span><span class="s1"> us&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">tau_hmin</span><span class="p">))</span>
+<span class="go">5.92e-06 us</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="defects.defects.MultiLevel">
+<em class="property">class </em><code class="descclassname">defects.defects.</code><code class="descname">MultiLevel</code><span class="sig-paren">(</span><em>sigma_e</em>, <em>sigma_h</em>, <em>Ed</em>, <em>Nd</em>, <em>charge</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#MultiLevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.MultiLevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a Sah and Shockey defect defect with tow or more states.</p>
+<p>Each state must be defined with its own parameters, being the same for a single level defect.</p>
+<dl class="docutils">
+<dt>A single defect has:</dt>
+<dd><ol class="first last arabic simple">
+<li>Ed, the energy level of the defect from midgap.</li>
+<li>sigma_h or tau_h. The capture cross section for holes, or the minimum hole lifetime, respecitvly.</li>
+<li>sigma_n or tau_e  The capture cross section for electrons, or the minimum electron lifetime, respecitvly.</li>
+<li>The charge on the defect, now under the vairable charge (occupied_charge, unoccupied_charge).</li>
+</ol>
+</dd>
+</dl>
+<p>so here eveything is passed, instead of as a float as a list.</p>
+<dl class="docutils">
+<dt>Other things that are important are:</dt>
+<dd><ol class="first last arabic simple">
+<li>the concentration of the defect (Nd)</li>
+<li>the thermal velocities (vth_h, vth_e)</li>
+</ol>
+</dd>
+</dl>
+<p>All these are able to be set at the initialsation of the defect or later.</p>
+<dl class="method">
+<dt id="defects.defects.MultiLevel.capture_e">
+<code class="descname">capture_e</code><span class="sig-paren">(</span><em>ne</em>, <em>ncs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#MultiLevel.capture_e"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.MultiLevel.capture_e" title="Permalink to this definition">¶</a></dt>
+<dd><p>The net transition of electonrs into all levels of a multi level defect</p>
+<p>Note here ncs represents the number of defects in each charge stage. It should be listed from the lowest level upwards. It should be one larger than the numer of capture cross sections/energy levels of the defect.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ne</strong> (<em>(</em><em>float</em><em>)</em>) – The number of electrons in the conduction band</li>
+<li><strong>ncs</strong> (<em>(</em><em>array</em><em>)</em>) – the number of defects in each charge stage. It should be listed from the lowest level upwards.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.MultiLevel.capture_h">
+<code class="descname">capture_h</code><span class="sig-paren">(</span><em>nh</em>, <em>ncs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#MultiLevel.capture_h"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.MultiLevel.capture_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>The net transition of holes into all levels of a multi level defect</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nh</strong> (<em>(</em><em>float</em><em>)</em>) – The number of holes in the valance band</li>
+<li><strong>ncs</strong> (<em>(</em><em>array</em><em>)</em>) – the number of defects in each charge stage. It should be listed from the lowest level upwards.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.MultiLevel.current_net_charge">
+<code class="descname">current_net_charge</code><span class="sig-paren">(</span><em>ncs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#MultiLevel.current_net_charge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.MultiLevel.current_net_charge" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the net charge of the defect given a charge distribution.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.MultiLevel.emitted_e">
+<code class="descname">emitted_e</code><span class="sig-paren">(</span><em>ncs</em>, <em>ni</em>, <em>temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#MultiLevel.emitted_e"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.MultiLevel.emitted_e" title="Permalink to this definition">¶</a></dt>
+<dd><p>The net transition of electonrs out all levels of a multi level defect</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ncs</strong> (<em>(</em><em>array</em><em>)</em>) – the number of defects in each charge stage. It should be listed from the lowest level upwards.</li>
+<li><strong>ni</strong> (<em>(</em><em>float</em><em>)</em>) – The intrinsic carrier density</li>
+<li><strong>temp</strong> (<em>(</em><em>float</em><em>)</em>) – The temeprature</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.MultiLevel.emitted_h">
+<code class="descname">emitted_h</code><span class="sig-paren">(</span><em>ncs</em>, <em>ni</em>, <em>temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#MultiLevel.emitted_h"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.MultiLevel.emitted_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>The net transition of holes out all levels of a multi level defect</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nh</strong> (<em>(</em><em>array</em><em>)</em>) – The number of holes in the valance band</li>
+<li><strong>ncs</strong> (<em>(</em><em>array</em><em>)</em>) – the number of defects in each charge stage. It should be listed from the lowest level upwards.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.MultiLevel.net_charge">
+<code class="descname">net_charge</code><span class="sig-paren">(</span><em>Ef</em>, <em>temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#MultiLevel.net_charge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.MultiLevel.net_charge" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the net charge of the defect given fermi energy level and temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Ef</strong> (<em>(</em><em>float</em><em> or </em><em>array</em><em>, </em><em>unit eV</em><em>)</em>) – the fermi energy level or quasi fermi energy level. If both electron and hole are provided the electron is to be provided first.</li>
+<li><strong>temp</strong> (<em>(</em><em>float in K</em><em>)</em>) – The temperature of the sample.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.MultiLevel.recombination_SS">
+<code class="descname">recombination_SS</code><span class="sig-paren">(</span><em>qEfe</em>, <em>qEfh</em>, <em>temp</em>, <em>ni</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#MultiLevel.recombination_SS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.MultiLevel.recombination_SS" title="Permalink to this definition">¶</a></dt>
+<dd><p>This calculates the total recombiation occuring through all defect levels in steady state.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>qEfe</strong> (<em>(</em><em>float eV</em><em>)</em>) – The quasi Fermi energy level of electons</li>
+<li><strong>qEfh</strong> (<em>(</em><em>float eV</em><em>)</em>) – The quasi Fermi energy level of holes</li>
+<li><strong>temp</strong> (<em>(</em><em>float</em><em>, </em><em>kelvin</em><em>)</em>) – temperature of the sample</li>
+<li><strong>ni</strong> (<em>(</em><em>float</em><em>, </em><em>cm^-3</em><em>)</em>) – the intrinsic carrier density</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The emission and capture rates are the same as a shockley read hall defect.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.defects.MultiLevel.recombination_SS_ateachlevel">
+<code class="descname">recombination_SS_ateachlevel</code><span class="sig-paren">(</span><em>qEfe</em>, <em>qEfh</em>, <em>temp</em>, <em>ni</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#MultiLevel.recombination_SS_ateachlevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.MultiLevel.recombination_SS_ateachlevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>This calculates the recombiation occuring through a defect in steady state. This uses the Sah and Shockley formalisation, eqn 3.19 in 10.1103/PhysRev.109.1103.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>qEfe</strong> (<em>(</em><em>float eV</em><em>)</em>) – The quasi Fermi energy level of electons</li>
+<li><strong>qEfh</strong> (<em>(</em><em>float eV</em><em>)</em>) – The quasi Fermi energy level of holes</li>
+<li><strong>temp</strong> (<em>(</em><em>float</em><em>, </em><em>kelvin</em><em>)</em>) – temperature of the sample</li>
+<li><strong>ni</strong> (<em>(</em><em>float</em><em>, </em><em>cm^-3</em><em>)</em>) – the intrinsic carrier density</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>recombiation</strong> – where n is the number of quasi fermi energy level set, and m is the number of defect levels.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">(array (nxm), cm^-3)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">simulation of defects in semiconductor</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../timeconstants/timeconstants.html">Trapping time constants</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Defect Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample/sample.html">Sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../solver/solvers.html">Solvers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../timeconstants/timeconstants.html" title="previous chapter">Trapping time constants</a></li>
+      <li>Next: <a href="../sample/sample.html" title="next chapter">Sample</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Mattias Klaus Juhl.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/defects/defects.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
