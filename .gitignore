@@ -1,0 +1,15 @@
+build/
+dist/
+docs/build
+docs/source/_theme
+
+primerize.egg-info/
+*.pyc
+
+/.nojekyll
+/*.html
+/*.js
+/objects.inv
+_static/
+_sources/
+_images/
