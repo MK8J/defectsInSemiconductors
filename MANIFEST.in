@@ -1,0 +1,8 @@
+
+include mind_map.png README.md
+recursive-include * *.yaml
+recursive-include * *.yml
+recursive-include * *.const
+recursive-include * Si_*
+prune docs/_build
+prune build

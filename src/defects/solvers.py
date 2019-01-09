@@ -1,0 +1,780 @@
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import odeint
+from scipy.integrate import odeint
+from . import defects
+
+
+def transient_decay(s, nxc, t_stepf=500, t_stepNo=1000, auto=True, nxc_min=1e8, G_ss=0):
+    '''
+    calculates a transient decay from an inital steady state condition.
+
+    inputs:
+        s: (sample class)
+        nxc: (float)
+            The steady state number of excess carrier from which the decay states
+        t_stepf: (numebr, optional)
+            The step size of the numerical solution compared to the lowest of the SRH and radiative Lifetime
+        t_stopNo: (number, optional)
+            The number of time steps to take
+        auto: (bool)
+            If this is true, the simulation step size and number of steps will be increased until a desired excess carrier density is reached.
+        nxc_min: (float, default=1e8)
+            The excess carrier density at which the transient simulatulation should true and stop. This only has an impact if auto is set to true
+        G_ss: (float, default = 0)
+            Allows for a transient decay to a fixed generation rate.
+
+    outputs:
+        ne: (array like)
+            concentration of electrons
+        nh: (array like)
+            concentration of holes
+        nd: (array like)
+            concentration of defect/defect states
+        t: (array like)
+            time.
+    '''
+    assert type(auto) == bool
+
+    # get steady state
+    ne0, nh0, nd0 = s.steady_state_concentraions(nxc=nxc)
+
+    def solve():
+        '''
+        This is just a little solver that prevents duplication if auto is used.
+        '''
+
+        if all(isinstance(dft, defects.MultiLevel) for dft in s.defectlist):
+
+            _ne, _nh, _t, _nd = trans_multilevel(
+                s, ne=ne0, nh=nh0, ncs=nd0,
+                G_ss=G_ss, t_stepf=t_stepf, t_stepNo=t_stepNo)
+
+        elif all(isinstance(dft, defects.SingleLevel) for dft in s.defectlist):
+
+            nte = [dft.Nd for dft in s.defectlist]
+            _ne, _nh, _t, _nd = trans2(
+                s, ne=ne0, nh=nh0, nte=nte,
+                G_ss=G_ss, t_stepf=t_stepf)
+        else:
+            print('somethign went wrong', s.defectlist)
+            print(all(isinstance(dft, defects.MultiLevel)
+                      for dft in s.defectlist))
+            print([isinstance(dft, defects.MultiLevel)
+                   for dft in s.defectlist])
+            pass
+
+        return _ne, _nh, _t, _nd
+
+    if auto:
+        t_stepf = t_stepf
+
+        min_val = nxc_min
+        nef = nxc
+
+        while nef - min(s.ne0, s.nh0) > min_val:
+            ne, nh, t, nd = solve()
+            t_stepf *= 5
+#            t_stepNo *= 5
+            nef = min(ne[-1], nh[-1])
+
+#             print(nef - min(s.ne0, s.nh0) > min_val)
+
+            if t_stepf > 1e11:
+                print('could not reach minimum excess carrier density')
+                min_val = 1e20
+
+    elif not auto:
+
+        ne, nh, t, nd = solve()
+
+    return ne, nh, nd, t
+
+
+def steadyState(s, nxc, plot_carriers=True,   plot_lifetime=True):
+    '''
+    Calculates the steady state lifetime of a sample, give a specific defect.
+
+    inputs:
+        s: (class)
+            the sample class
+        nxc: (array like)
+            The excess carrier density to be evaluated
+        plot_carriers: (bool default  True)
+            determines if the function automatically plots the carriers with time
+        plot_lifetime: (bool default  True)
+            determines if the function automatically plots the lifetime as a function of excess carriers
+
+    returns:
+        gen: (numpy array, in cm^-3)
+            generation rate required to obtain the excess carrier density
+        tau: (numpy array, in seconds)
+            the minoirty carrier lifetime
+
+    An example:
+
+    define a defect
+    >>> defect = dict(Ed=[0, -0.35], sigma_e=[3e-14, 1e-16], sigma_h=[3e-15, 1e-15], charge=[[0, -1], [0, 1]], Nd=1e12)
+
+    define the sample properties
+    >>> s = Sample()
+    >>> s.tau_rad = 1 # a constant bulk lifetime in seconds
+    >>> s.Nacc = 0 # number acceptors in cm^-3
+    >>> s.Ndon = 1e16 # number donors in cm^-3
+    >>> s.temp = 300 # the sample temperature
+
+This  can be also used with the single level defect class, but here we are just showing the multi level defect
+
+    >>> s.defectlist = MultiLevelDefect(Ed=defect['Ed'], sigma_e=defect['sigma_e'], sigma_h=defect['sigma_h'], Nd=defect['Nd'], charge=defect['charge'])
+
+
+    >>> nxc = 1e13
+    >>> gen,tau = steadyState(s, nxc, plot_carriers=False,   plot_lifetime=False)
+    >>> print('gen = {0:.2e}cm^-3 \t tau = {1:.2e}s'.format(gen[0], tau[0]))
+    gen = 5.06e+17cm^-3        tau = 1.97e-05s
+    >>> plt.cla()
+    '''
+
+    if not isinstance(nxc, np.ndarray):
+        nxc = np.array([nxc])
+
+    nd = None
+    ne0, nh0 = s.equlibrium_concentrations()
+    ne0, nh0, nd0 = s.steady_state_concentraions([0])
+    ne, nh, nd = s.steady_state_concentraions(nxc=nxc)
+
+    # define the generation
+    nd = nd.reshape((ne.shape[0], nd.shape[0] // ne.shape[0]))
+
+    if plot_carriers:
+        plt.figure('a')
+        plt.plot(nh - nh0, ne - ne0, label='electonrs')
+        plt.plot(nh - nh0, nh - nh0, '--', label='holes')
+        plt.plot(nh - nh0, nd, '--', label='defects')
+        # plt.plot(nh - nh0, nd, ':', label='defect!')
+        plt.loglog()
+        plt.xlabel('Number of excess carriers')
+        plt.ylabel('Number of carriers')
+        plt.legend(loc=0)
+
+    qEfe = np.log(ne / s.ni) * s.Vt
+    qEfh = -np.log(nh / s.ni) * s.Vt
+
+    rec = np.zeros(nxc.shape)
+    for i in s.defectlist:
+        rec += i.recombination_SS(qEfe, qEfh, s.temp, s.ni)
+
+    rec += nxc / s.tau_rad
+
+    if hasattr(s.defectlist[0], 'recombination_SS_ateachlevel'):
+        lr = s.defectlist[0].recombination_SS_ateachlevel(
+            qEfe, qEfh, s.temp, s.ni)
+
+    if plot_lifetime:
+        plt.figure('life')
+#         plt.plot(nxc, (nh - nh0) / rec, 'r.-')
+#         plt.plot(nxc, (ne - ne0) / rec, 'g.-')
+        plt.plot(nxc, (nxc) / rec, 'b--')
+        # plt.plot(nh - nh0, ((nh - nh0) / lr.T).T, '--')
+        # plt.plot(nh - nh0, (nh - nh0) / rec)
+
+        plt.xlabel('excess carrier density (cm^-3)')
+        plt.loglog()
+
+    return rec, nxc / rec
+
+    # plt.loglog()
+
+    # plt.ylim(0.5e-6)
+
+    # plt.plot(ne - ne0, nd[:, 0])
+    # plt.semilogy()
+
+
+def squareWavePulse(s, t_stepf=500, t_stepNo=1000, Gss=1e20, plot_carriers=True,   plot_lifetime=True):
+    '''
+    This is a function to determine what happens to a semiconductors in 0D when
+    illumination with a square wave of light.
+    This runs a square wave pulse, cals the components and cals lifeimte
+
+    This is basiccally a wrapper around trans_multilevel(), to make this specific simulations easier.
+
+    inputs:
+        defect: dic of defect details. e.g.
+
+            defect_Fe = dict(Ed = [-1.12/2+0.38],
+                         sigma_e=[4e-14],
+                         sigma_h=[
+                             3.9e-16 * np.exp(-0.045/1.38e-23/300*1.6e-19)]
+                         Nd=1e13
+                         )
+        s: sample class
+        t_stepf: (float, defualt 500, uniltess)
+            The time step taking in ht numerical simulations. It is the ratio to the minoirty carrier Lifetime
+        t_stepNo: (float, default=1000, unitless)
+            The number of time steps taken
+        Gss: (float, defualy=1e20, photons)
+            the illumination intensity.
+        plot_carriers: (bool, default=True)
+            creats a plot of the carriers with time
+        plot_lifeimte: (bool, default=True)
+            creates a plot of lifetime
+
+    returns:
+        ne: (1D, array like)
+            number of electrons for each time step
+        nh: (1D, array like)
+            number of holes for each time step
+        nd: (nD, array like)
+            occupation of defects in the posisble states. The n comes from the number of states in a defect.
+        t: (array like)
+            the time
+
+    '''
+    # put in it the simulation
+    # s._defectlist = []
+    # s.defectlist = MultiLevelDefect(Ed=defect['Ed'],
+    #                                 sigma_e=defect['sigma_e'],
+    #                                 sigma_h=defect['sigma_h'],
+    #                                 charge=defect['charge'],
+    #                                 Nd=defect['Nd'])
+
+    # get the dark carrier density
+    ne0, nh0 = s.equlibrium_concentrations()
+    # print('ne0 {0:.2e}, nho {1:.2e}'.format(ne0, nh0))
+
+    ncs = s.defectlist[0].charge_state_concentration(s.Ef, s.temp)
+
+    # solve under light
+    ne, nh, t, other = trans_multilevel(
+        s, ne=ne0, nh=nh0, ncs=ncs, G_ss=Gss,
+        t_stepf=t_stepf, t_stepNo=t_stepNo)
+
+    if plot_carriers:
+        plt.figure('carriers')
+        p1, = plt.plot(t, ne)
+        p2, = plt.plot(t, nh)
+        p = plt.plot(t, other, '--')
+
+    # solve for dark
+    t0 = t[-1]
+    nef = 1e20
+    t_stepf = 1000
+
+    min_val = max(min(ne0, nh0) / 100, 1e6)
+    min_val = 1e8
+
+    while nef - min(ne0, nh0) > min_val:
+        _ne, _nh, _t, _other = trans_multilevel(
+            s, ne=ne[-1], nh=nh[-1], ncs=other[-1, :],
+            G_ss=0, t_stepf=t_stepf, t_stepNo=t_stepNo)
+
+        nef = min(_ne[-1], _nh[-1])
+        t_stepf *= 5
+        t_stepNo *= 5
+
+    ne, nh, t, other = _ne, _nh, _t, _other
+
+    if plot_carriers:
+        plt.figure('carriers')
+        plt.plot(t + t0, ne, '-', c=p1._color)
+        plt.plot(t + t0, nh, '-', c=p2._color)
+
+        for c, p0 in enumerate(p):
+            plt.plot(t + t0, other[:, c], '--', c=p0._color)
+
+    if plot_carriers:
+        plt.figure('carriers')
+        plt.plot(t[-1] + t0, ne0, 'o', c=p1._color)
+        plt.plot(t[-1] + t0, nh0, 'o', c=p2._color)
+        plt.loglog()
+
+        for c, p0 in enumerate(p):
+            plt.plot(t[-1] + t0, ncs[c], 'o', c=p0._color)
+        plt.xlabel('time (s)')
+        plt.ylabel('carrier density (cm^-3)')
+    if plot_lifetime:
+
+        # cal lifetime for the decay
+        # dn_pc = (ne + nh - ne[-1] - nh[-1]) / 2
+        dn_pc_n0 = (ne + nh - ne0 - nh0) / 2
+        # cal PL
+        pl = (ne * nh - ne0 * nh0)
+        dn_pl = (-s.doping + np.sqrt(s.doping**2 + 4 * pl)) / 2
+
+        print('Error in finial value e',
+              (ne0 - ne[-1]) * 100 / ne0, ' h', (nh0 - nh[-1]) * 100 / nh0)
+
+        plt.figure('lifetime')
+        plt.plot(ne - ne0, -(ne - ne0) /
+                 np.gradient(ne - ne0, t), label='Electrons')
+        plt.plot(nh - nh0, -(nh - nh0) /
+                 #                  np.gradient(nh - nh0, t), label='holes')
+                 #         plt.plot(nh - nh0, -(nh) /
+                 np.gradient(nh, t), label='holes')
+        plt.legend(loc=0)
+        plt.loglog()
+        # skip = dn_pc_n0.shape[0] // 1000
+        # p1 = plt.plot(dn_pc_n0[::skip], (dn_pc_n0)[::skip] /
+        #               (0 - np.gradient(dn_pc_n0, t))[::skip], '.', label='PC')
+        # p1 = plt.plot(dn_pl[::skip], (dn_pl)[::skip] /
+        #               (0 - np.gradient(dn_pl, t))[::skip], ':', label='PL')
+        plt.xlabel('excess carrier density (cm^-3)')
+        plt.ylabel('lifetime (s)')
+        # plt.loglog()
+        # plt.ylim(top=1e-3)
+        # plt.xlim(left=1e5)
+        # plt.legend(loc=0)
+
+    return ne, nh, other, t
+
+
+def trans(sample, ne, nh, nte, G_ss=1e22, t_stepf=2000):
+    '''
+    A function that calculates the carrier density with time, under transient conditions.
+    You need to provide the carrier density at which the simulations starts, and the
+    illumination intensity under which the carriers being subjected to.
+
+    This function allows easy passing of the samples class.
+
+    inputs:
+        sample:
+            (class)
+            An instance of the sample class
+        ne:
+            (float)
+            the inital number of free electrons
+        nh:
+            (float)
+            the inital number of free holes
+        nte:
+            (float)
+            the inital number of electrons in the defect
+        G_ss:
+            (float)
+            The generation rate at which the decay ends at. This assumes the sample
+            is in steady state at the start of the decay.
+        t_stepf:
+            (float)
+            t_stepf is the mutlipler to the smallest lifetime that is used as the length of the simulation.
+
+    output:
+        ne:
+            (array)
+            the number of free electrons with time
+        nh:
+            (array)
+            the number of holes electrons with time
+        t:
+            (array)
+            the time
+        nte:
+            (array)
+            the electrons in the traps
+    '''
+
+    return _SRH_trans2(ne=ne, nh=nh, nte=nte, Nacc=sample.Nacc,
+                       Ndon=sample.Ndon,
+                       ni=sample.ni,
+                       temp=sample.temp,
+                       dft_list=sample.defectlist, bkg_tau=sample.tau_rad,
+                       G_ss=G_ss, t_stepf=t_stepf)
+
+
+def trans_multilevel(sample, ne, nh, ncs, G_ss=1e22, t_stepf=2000, t_stepNo=10000):
+    '''
+    A function that calculates the carrier density with time, under transient conditions.
+    You need to provide the carrier density at which the simulations starts, and the
+    illumination intensity under which the carriers being subjected to.
+
+    This function allows easy passing of the samples class.
+
+    inputs:
+        sample:
+            (class)
+            An instance of the sample class
+        ne:
+            (float)
+            the inital number of free electrons
+        nh:
+            (float)
+            the inital number of free holes
+        ncs:
+            (float)
+            the fraction of each charge state
+        G_ss:
+            (float)
+            The generation rate at which the decay ends at. This assumes the sample
+            is in steady state at the start of the decay.
+        t_stepf:
+            (float)
+            t_stepf is the mutlipler to the smallest lifetime that is used as the length of the simulation.
+
+    output:
+        ne:
+            (array)
+            the number of free electrons with time
+        nh:
+            (array)
+            the number of holes electrons with time
+        t:
+            (array)
+            the time
+        ncs:
+            (array)
+            the charge state of the defect
+    '''
+
+    return _SRH_trans_multi(ne=ne, nh=nh, ncs=ncs, Nacc=sample.Nacc,
+                            Ndon=sample.Ndon, ni=sample.ni, temp=sample.temp,
+                            dft_list=sample.defectlist, bkg_tau=sample.tau_rad,
+                            G_ss=G_ss, t_stepf=t_stepf,  t_stepNo=t_stepNo, ne0=sample.ne0, nh0=sample.nh0)
+
+
+def _SRH_trans(ne, nh, nte,  Nacc, Ndon, ni, temp, dft_list, bkg_tau, G_ss=1e22, t_stepf=2000, t_stepNo=10000):
+    '''
+    Solve the excess carrier density with time. It assumes the
+
+    inputs:
+        ne:
+            (float)
+            the inital number of electonrs
+        nh:
+            (float)
+            the inital number of holes
+        nte:
+            the inital number of electrons in the defect
+        Na:
+            (float)
+            the number of ionised acceptors
+        Nd:
+            (float)
+            the number of ionised donors
+        ni:
+            (float)
+            The intrinsic carrier density
+        temp:
+            (float, Kelvin)
+            the temperature
+        dft_list:
+            (list)
+            A defect list from the srh class.
+        bkg_tau:
+            (float, s)
+            A constant background recombiation Lifetime
+        G_ss:
+            (float)
+            The generation rate to which the transient condition converges
+        t_stepf:
+            (float)
+            a the mutlipler that controls the size of time step. Change this value is things look strange.
+        t_stepNo:
+            (float)
+            number of time steps
+
+    '''
+
+    def SRH_fitting(y, t, G):
+        '''
+        inputs:
+            y = [ne, nh, nte]
+            t is time
+            G is generation rate
+
+        '''
+
+        # grab the electron and hole conc, the defect conc is grabbed below.
+        ne, nh = y[0], y[1]
+
+        # Adjust the generation by the recombiation
+        if bkg_tau is not None:
+            G -= (ne - ne0) / bkg_tau
+
+        # for no defects there is no change.
+        emitted_e = []
+        emitted_h = []
+        captured_e = []
+        captured_h = []
+
+        # iterate over all the defects in the list
+        for i, dft in enumerate(dft_list):
+            nte = y[i + 2]
+            emitted_e.append(dft.emitted_e(nte, ni, temp))
+            emitted_h.append(dft.emitted_h(nte, ni, temp))
+
+            captured_e.append(dft.capture_e(ne, nte))
+            captured_h.append(dft.capture_h(nh, nte))
+        # all those changes result in
+        dne = G - sum(captured_e) + sum(emitted_e)
+        dnh = G - sum(captured_h) + sum(emitted_h)
+
+        dydt = [dne, dnh]
+
+        # put the change in the defects into one thingo
+        for i in range(len(emitted_e)):
+            dydt.append(- captured_h[i] + emitted_h[i] +
+                        captured_e[i] - emitted_e[i])
+
+        return dydt
+
+    # build the input vectors
+
+    # get the dark concentration of each carrier
+    ne0, nh0, nte0 = _dark_carrier_concs_many(Ndon, Nacc, temp, ni, dft_list)
+
+    # get all the recombiation sources
+    _temp_list = [bkg_tau]
+
+    for dft in dft_list:
+        if Nacc > Ndon:
+            _temp_list.append(dft.tau_hmin)
+
+        else:
+            _temp_list.append(dft.tau_emin)
+
+    _tau = min(_temp for _temp in _temp_list if _temp is not None)
+
+    # an array of time.
+    t = np.linspace(0, _tau * t_stepf, t_stepNo)
+
+    # set the inital conditions
+    y0 = [np.array(ne, dtype=np.float64), np.array(nh, dtype=np.float64)]
+    # now add the defects
+    for dft in nte:
+        y0.append(dft)
+
+    # Solve for the steady state illumination condition
+    # sol0 = solve_ivp(SRH_fitting, t, y0, rtol=0.0000001)
+    # print(type(y0), type(t), type(G_ss))
+    # print(y0)
+    sol0 = odeint(SRH_fitting, y0, t,  args=(G_ss,), rtol=0.0000001)
+
+    ne, nh = sol0[:, 0], sol0[:, 1]
+
+    return ne, nh, t, sol0[:, 2]
+
+
+def _SRH_trans_multi(ne, nh, ncs,  Nacc, Ndon, ni, temp, dft_list, bkg_tau, ne0, nh0, G_ss=1e22, t_stepf=2000, t_stepNo=10000):
+    '''
+    Solve the excess carrier density with time. It assumes the
+
+    inputs:
+        ne:
+            (float)
+            the inital number of electonrs
+        nh:
+            (float)
+            the inital number of holes
+        ncs:
+            (array)
+            the number of defects in each charge state
+        Nacc:
+            (float)
+            the number of ionised acceptors
+        Ndon:
+            (float)
+            the number of ionised donors
+        ni:
+            (float)
+            The intrinsic carrier density
+        temp:
+            (float, Kelvin)
+            the temperature
+        dft_list:
+            (list)
+            A defect list from the srh class.
+        bkg_tau:
+            (float, s)
+            A constant background recombiation Lifetime
+        G_ss:
+            (float)
+            The generation rate to which the transient condition converges
+        t_stepf:
+            (float)
+            a the mutlipler that controls the size of time step. Change this value is things look strange.
+        t_stepNo:
+            (float)
+            number of time steps
+
+    '''
+
+    # def jac_de(y, t):
+    #     '''
+    # The dream of getting a jocobian done.
+    #     Currently this only works for a single defect, thought that defect can have multiple levels.
+    #
+    #     The jacobian is a bunch of partial derivatives
+    #
+    #     J = [[df0/dx0 .. df0/dxm]..[dfn/dxm..dfn/dxm]]
+    #
+    #     Here that looks like:
+    #
+    #     $$d/dn_e dn_e/dt = d/dn_e( G +\Sum_{E_d} e_e - c_e)$$
+    #     $$d/dn_e dn_e/dt =  - \Sum_{E_d} \frac{N_{di}}{sigma_e v_{the}} $$
+    #
+    #     Similarly:
+    #     $$d/dn_h dn_e/dt =  0 $$
+    #     $$d/dN_d dn_e/dt =   \Sum_{E_d} \Beta_e-\frac{n_{e}}{sigma_e v_{the}} $$
+    #
+    #     $$d/dne dn_h/dt = 0$$
+    #     $$d/dnh dn_h/dt = - \Sum_{N_d} \frac{N_{di}}{sigma_h v_{thh}} $$
+    #     $$d/dN_d dn_h/dt = \Sum_{E_d} -\Beta_h+\frac{n_h}{sigma_h v_{thh}} $$
+    #     '''
+    #     dft = dft_list[0]
+    #     j = 0
+    #     i = 0  # this needs to be changed.
+    #
+    #     _ncs = np.copy(y[i + 2 + j:j + i + 2 + len(dft.Ed) + 1])
+    #
+    #     Nde = dft.emitted_e(_ncs / _ncs, ni, temp) - \
+    #         dft.capture_e(_ne, _ncs / _ncs)
+    #     Ndh = dft.emitted_h(_ncs / _ncs, ni, temp) - \
+    #         dft.capture_h(_ne, _ncs / _ncs)
+    #
+    #     jac = np.array([[np.sum(dft.capture_e(1, _ncs)), 0] + Nde,
+    #                     [0, np.sum(dft.capture_h(1, _ncs))] + Ndh])
+    #
+    #     jac_ = np.zeros((len(Ndh), len(Ndh)))
+    #     jac_[:, 0] = Nde
+    #     jac_[:, 1] = Ndh
+    #     for i in range(len(Ndh)):
+    #         jac_[i, 2 + i] = 1
+    #
+    #     return jac
+    #     dft.emitted_e(_ncs / _ncs, ni, temp) - dft.capture_e(_ne, _ncs / _ncs)
+    #     return
+
+    def SRH_fitting(y, t, G):
+        '''
+        inputs:
+            y = [ne, nh, rcs]
+            t is time
+            G is generation rate
+
+        $$dne/dt = G - c_e + e_e$$
+        $$dnh/dt = G - c_h + e_h$$
+        $$dN_{di}/dt = c_e - e_e - c_h + e_e$$
+        '''
+
+        # for no defects there is no change.
+        emitted_e = []
+        emitted_h = []
+        captured_e = []
+        captured_h = []
+
+        emitted_e = np.array([])
+        emitted_h = np.array([])
+        captured_e = np.array([])
+        captured_h = np.array([])
+
+        # grab the electron and hole conc, the defect conc is grabbed below.
+        _ne, _nh = y[0], y[1]
+
+        # Adjust the generation by the recombiation
+        # this isn't quite right and wont work for intrinsic material
+        if bkg_tau is not None:
+            if ne0 > nh0:
+                G -= (_nh - nh0) / bkg_tau
+            else:
+                G -= (_ne - ne0) / bkg_tau
+
+        # iterate over all the defects in the list
+        counter = 0
+        # dncs_list = np.zeros((y.shape[0] - 2))
+        dncs = np.array([])
+
+        for i, dft in enumerate(dft_list):
+            _ncs = np.copy(
+                y[2 + i + counter:2 + counter + i + len(dft.Ed) + 1])
+
+            # calculate the emitted carriers
+            _emitted_e = dft.emitted_e(_ncs, ni, temp)
+            _emitted_h = dft.emitted_h(_ncs, ni, temp)
+
+            # calculate the captured carriers
+            _captured_e = dft.capture_e(_ne, _ncs)
+            _captured_h = dft.capture_h(_nh, _ncs)
+
+            # make these into a running array
+            captured_e = np.concatenate((
+                captured_e, _captured_e))
+            captured_h = np.concatenate((
+                captured_h, _captured_h))
+
+            # make these into a running array
+            emitted_e = np.concatenate((
+                emitted_e, _emitted_e))
+            emitted_h = np.concatenate((
+                emitted_h, _emitted_h))
+
+            # adjust for starting length in i for non multi level defects
+            counter += len(dft.Ed)  # - 1
+
+            # calculate where the defects went
+            moveup = _captured_e + _emitted_h
+            movedown = _emitted_e + _captured_h
+
+            # this has to be done here, to ensure we do not have movement between
+            # independent defects
+            _dncs = np.zeros(_ncs.shape)
+            _dncs[:-1] += -moveup + movedown
+            _dncs[1:] += moveup - movedown
+
+            # This results in a total change:
+            dncs = np.concatenate((dncs, _dncs))
+
+        # all those changes result in
+        dne = G - np.sum(captured_e) + np.sum(emitted_e)
+        dnh = G - np.sum(captured_h) + np.sum(emitted_h)
+
+        # calculate the gradient
+        dydt = np.array([dne, dnh])
+        dydt = np.concatenate((dydt, dncs))
+
+        return dydt
+
+    # get all the recombiation sources to estimate the time step
+    _temp_list = [bkg_tau]
+
+    for dft in dft_list:
+        if Nacc < Ndon:
+            for i in dft.tau_hmin:
+                _temp_list.append(i)
+
+        else:
+            for i in dft.tau_emin:
+                _temp_list.append(i)
+
+    # this is our estimate critical time
+    _tau = min(_temp for _temp in _temp_list if _temp is not None)
+    # an array of time.
+    t = np.linspace(0, _tau * t_stepf, t_stepNo)
+
+    # ToDO:
+    # make the time spacing log spaced as the decays are exponential like.
+    # an example would be:
+    # t = np.logspace(np.log10(_tau / 1000),
+    # np.log10(_tau * 100 * t_stepf), t_stepNo)
+    # t[0] = 0
+    # however the start point here is the issue. How close do you start to the
+    # minimum tau? This appears to work well and maybe another function should
+    # be formed.
+
+    # set the inital conditions
+    y0 = [np.array(ne, dtype=np.float64), np.array(nh, dtype=np.float64)]
+
+    # now add the ratio of charge states. Need to weight it by the number of traps
+    # so the ODE function has an equal error wieght on it.
+    for i in ncs:
+        y0.append(i)
+
+    # Solve for the steady state illumination condition
+    sol0, other = odeint(SRH_fitting, y0, t,  args=(
+        G_ss,), rtol=0.0000001, full_output=True)
+    # uncomment below to see if it is stiff or not (2 is stiff)
+    # print(other['mused'])
+
+    ne, nh = sol0[:, 0], sol0[:, 1]
+
+    return ne, nh, t, sol0[:, 2:]

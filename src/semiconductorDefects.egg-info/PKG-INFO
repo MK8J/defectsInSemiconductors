@@ -1,0 +1,21 @@
+Metadata-Version: 1.1
+Name: semiconductorDefects
+Version: 0.1.0
+Summary: Zero dimensional simulations of the macroscopic impact of defects in semiconductors.
+Home-page: UNKNOWN
+Author: Mattias Juhl
+Author-email: mattias.juhl@gmail.com
+License: MIT
+Description-Content-Type: UNKNOWN
+Description: # semiconductor
+        
+        please see the read me in [github pages](http://mk8j.github.io/semiconductor/)
+        
+Keywords: semiconductor models,silicon
+Platform: UNKNOWN
+Classifier: Natural Language :: English
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Topic :: Software Development :: Libraries :: Python Modules

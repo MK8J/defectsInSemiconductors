@@ -1,0 +1,14 @@
+MANIFEST.in
+README.md
+setup.cfg
+setup.py
+src/defects/__init__.py
+src/defects/defects.py
+src/defects/sample.py
+src/defects/solvers.py
+src/defects/timeConstants.py
+src/semiconductorDefects.egg-info/PKG-INFO
+src/semiconductorDefects.egg-info/SOURCES.txt
+src/semiconductorDefects.egg-info/dependency_links.txt
+src/semiconductorDefects.egg-info/not-zip-safe
+src/semiconductorDefects.egg-info/top_level.txt
