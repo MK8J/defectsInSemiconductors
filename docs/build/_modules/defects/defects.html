@@ -1,0 +1,841 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>defects.defects &#8212; simulation of defects in semiconductor 0.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for defects.defects</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.constants</span> <span class="k">as</span> <span class="nn">C</span>
+
+
+<div class="viewcode-block" id="SingleLevel"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.SingleLevel">[docs]</a><span class="k">class</span> <span class="nc">SingleLevel</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This class represents a Shockley Read Hall defect with two states. This is also know as a single energy level.</span>
+
+<span class="sd">    A defect has paramters:</span>
+<span class="sd">        1. Ed, the energy level of the defect from midgap.</span>
+<span class="sd">        2. sigma_h or tau_h. The capture cross section for holes, or the minimum hole lifetime, respecitvly.</span>
+<span class="sd">        3. sigma_n or tau_e  The capture cross section for electrons, or the minimum electron lifetime, respecitvly.</span>
+
+<span class="sd">    Other things that are important are:</span>
+<span class="sd">        1. the concentration of the defect (Nd)</span>
+<span class="sd">        2. the thermal velocities (vth_h, vth_e)</span>
+<span class="sd">        3. The charge on the defect (occupied_charge, unoccupied_charge)</span>
+
+<span class="sd">    All these are able to be set at the initialsation of the defect or later.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Nd : float</span>
+<span class="sd">        The defect concentration</span>
+<span class="sd">    Ed : float</span>
+<span class="sd">        The gibbs free energy of the defect</span>
+<span class="sd">    vth_h : float</span>
+<span class="sd">        The thermal velocity of holes</span>
+<span class="sd">    vth_e : float</span>
+<span class="sd">        The thermal velocity of electrons</span>
+<span class="sd">    occupied_charge : float</span>
+<span class="sd">        The charge of a defect with an electron in it</span>
+<span class="sd">    unoccupied_charge : float</span>
+<span class="sd">        The charge of a defect without an electron in it</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tau_emin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tau_hmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma_e</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma_h</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Nd</span><span class="o">=</span><span class="mf">1e12</span><span class="p">,</span> <span class="n">vth_h</span><span class="o">=</span><span class="mf">1.69e7</span><span class="p">,</span> <span class="n">vth_e</span><span class="o">=</span><span class="mf">2.05e7</span><span class="p">,</span> <span class="n">occupied_charge</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">unoccupied_charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initalised the class</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># initiate the vairables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span> <span class="o">=</span> <span class="n">Nd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vth_h</span> <span class="o">=</span> <span class="n">vth_h</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vth_e</span> <span class="o">=</span> <span class="n">vth_e</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">occupied_charge</span> <span class="o">=</span> <span class="n">occupied_charge</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unoccupied_charge</span> <span class="o">=</span> <span class="n">unoccupied_charge</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__tau_hmin</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__tau_emin</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_h</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_e</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ed</span> <span class="o">=</span> <span class="n">Ed</span>
+
+        <span class="c1"># set them form the values that were passed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__attrs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># these must be set after</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tau_hmin</span> <span class="o">=</span> <span class="n">tau_hmin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tau_emin</span> <span class="o">=</span> <span class="n">tau_emin</span>
+
+        <span class="c1"># self.Ed = Ed</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_h</span> <span class="o">=</span> <span class="n">sigma_h</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_e</span> <span class="o">=</span> <span class="n">sigma_e</span>
+
+    <span class="k">def</span> <span class="nf">__attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dic</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        sets the values in provided dictionary</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_e_emission_coef</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        the electron emission coefficient</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Vt</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">temp</span> <span class="o">/</span> <span class="n">C</span><span class="o">.</span><span class="n">e</span>
+        <span class="c1"># print(Vt, self.sigma_e, self.vth_e, ni, self.Ed)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_e</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_e</span> <span class="o">*</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ed</span> <span class="o">/</span> <span class="n">Vt</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_h_emission_coef</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        the hole emission coefficient</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Vt</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">temp</span> <span class="o">/</span> <span class="n">C</span><span class="o">.</span><span class="n">e</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_h</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_h</span> <span class="o">*</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">Ed</span> <span class="o">/</span> <span class="n">Vt</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SingleLevel.net_charge"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.SingleLevel.net_charge">[docs]</a>    <span class="k">def</span> <span class="nf">net_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ef</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        returns the net charge of the defect for a given temperature and</span>
+<span class="sd">        energy level</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Ef : float or list of 2 floats, eV</span>
+<span class="sd">                The Fermi energy level or list of quasi fermi energy level.</span>
+<span class="sd">                If a list is provided it is assumed the electron quasi Fermi</span>
+<span class="sd">                energy level is first</span>
+<span class="sd">        temp : float, kelvin</span>
+<span class="sd">                temperature of the sample</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        We can see the change on a defect we now define. Note this is an unusual defect as it has a possible charges of +1 or -1. This is just used now as it makes the example simplier</span>
+
+<span class="sd">        &gt;&gt;&gt; s = SingleDefect(Ed=0, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12, occupied_charge=-1, unoccupied_charge=1)</span>
+
+<span class="sd">        As a function of the Fermi energy level. It should be negative</span>
+<span class="sd">        the higher the fermi energy level</span>
+
+<span class="sd">        &gt;&gt;&gt; print(&#39;{0:.2e}&#39;.format(s.net_charge(0.3,300)))</span>
+<span class="sd">        -1.00e+12</span>
+
+<span class="sd">        &gt;&gt;&gt; print(&#39;{0:.2e}&#39;.format(s.net_charge(-0.5,300)))</span>
+<span class="sd">        1.00e+12</span>
+
+<span class="sd">        It should be 0 when Ed-Ef</span>
+
+<span class="sd">        &gt;&gt;&gt; print(&#39;{0:.2f}&#39;.format(s.net_charge(0,300)))</span>
+<span class="sd">        0.00</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">ncs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_state_concentration</span><span class="p">(</span><span class="n">Ef</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+        <span class="n">charge</span> <span class="o">=</span> <span class="n">ncs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">unoccupied_charge</span> <span class="o">+</span> \
+            <span class="n">ncs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">occupied_charge</span>
+
+        <span class="k">return</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">charge</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="SingleLevel.charge_state_concentration"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.SingleLevel.charge_state_concentration">[docs]</a>    <span class="k">def</span> <span class="nf">charge_state_concentration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ef</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Retruns the concentration of the the charge states for a defect for specific electron and hole fermy energy levels. The states are reported with the more &quot;positive&quot; levels first.</span>
+
+<span class="sd">        This is equilivant to DOI: 10.1063/1.4906465</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Ef : float or list of 2 floats, [Efe, Efh], eV</span>
+<span class="sd">            The Fermi energy level or list of quasi fermi energy level.</span>
+<span class="sd">            If a list is provided it is assumed the electron quasi Fermi</span>
+<span class="sd">            energy level is first</span>
+<span class="sd">        temp : float, kelvin</span>
+<span class="sd">            temperature of the sample</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        for a defect in the lower half of the band gap in an n-type material it should be full of electrons. So we get the first state empty, and the second state full</span>
+
+<span class="sd">        &gt;&gt;&gt; s = SingleDefect(Ed=-0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)</span>
+
+<span class="sd">        &gt;&gt;&gt; print(s.charge_state_concentration(0.3, 300))</span>
+<span class="sd">        [3.98443584e+03 9.99999996e+11]</span>
+
+<span class="sd">        if we reverse the defect and fermi level, we reverse the occupation</span>
+
+<span class="sd">        &gt;&gt;&gt; s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)</span>
+
+<span class="sd">        &gt;&gt;&gt; print(s.charge_state_concentration(-0.3, 300))</span>
+<span class="sd">        [9.99999996e+11 3.98443584e+03]</span>
+
+<span class="sd">        for a defect level equal to the fermi energy level the occupations is 50%.</span>
+
+<span class="sd">        &gt;&gt;&gt; s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)</span>
+<span class="sd">        &gt;&gt;&gt; print(s.charge_state_concentration(0.2, 300))</span>
+<span class="sd">        [5.e+11 5.e+11]</span>
+
+<span class="sd">        Finially we can also provide both a hole and electron fermi energy level</span>
+
+<span class="sd">        &gt;&gt;&gt; s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)</span>
+<span class="sd">        &gt;&gt;&gt; print(s.charge_state_concentration([0.4,0.2], 300))</span>
+<span class="sd">        [4.36472835e+08 9.99563527e+11]</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumprod</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">occupation_ratio_SS</span><span class="p">(</span><span class="n">Ef</span><span class="p">,</span> <span class="n">temp</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ratio</span> <span class="o">/</span> <span class="n">ratio</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SingleLevel.occupation_ratio_SS"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.SingleLevel.occupation_ratio_SS">[docs]</a>    <span class="k">def</span> <span class="nf">occupation_ratio_SS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ef</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The occupation ratio of the negitive to positive defect charge state</span>
+<span class="sd">        This works for the general case and is the same as in Sah and Shockley 1958 paper.</span>
+
+<span class="sd">        This is equilivant to inver alpha from DOI: 10.1063/1.4906465... well its very similar. But this is correct.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Ef : float or list of 2 floats, eV</span>
+<span class="sd">            The Fermi energy level or list of quasi fermi energy level.</span>
+<span class="sd">            If a list is provided it is assumed the electron quasi Fermi</span>
+<span class="sd">            energy level is first</span>
+<span class="sd">        temp : float, kelvin</span>
+<span class="sd">            temperature of the sample</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        An example is as follows. When Ef = Ed the occupation ratio should be 1, i.e. the defects occupy the same number</span>
+
+<span class="sd">        &gt;&gt;&gt; s = SingleDefect(Ed=0., sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;n_de = {0:.2f}&#39;.format(s.occupation_ratio_SS(0, 300)))</span>
+<span class="sd">        n_de = 1.00</span>
+
+<span class="sd">        Moreover, for symetric capture cross sections and a defect at midgap, if a symetric splitting occurs we maintain the even occupation.</span>
+
+<span class="sd">        &gt;&gt;&gt; print(&#39;n_de = {0:.2f}&#39;.format(s.occupation_ratio_SS([0.3,-0.3], 300)))</span>
+<span class="sd">        n_de = 1.00</span>
+
+
+<span class="sd">        If we move away from midgap, this doesn&#39;t hold</span>
+
+<span class="sd">        &gt;&gt;&gt; s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;n_de = {0:.2f}&#39;.format(s.occupation_ratio_SS([0.3,-0.3], 300)))</span>
+<span class="sd">        n_de = 0.98</span>
+
+<span class="sd">        But if we again make the splitting even around the defect, it works!</span>
+
+<span class="sd">        &gt;&gt;&gt; print(&#39;n_de = {0:.0f}&#39;.format(s.occupation_ratio_SS([0.4,-0.2], 300)))</span>
+<span class="sd">        n_de = 1145</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_e</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_h</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_e</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_h</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">Ef</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">Ef</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">qEfe</span> <span class="o">=</span> <span class="n">Ef</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">qEfh</span> <span class="o">=</span> <span class="n">Ef</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qEfe</span> <span class="o">=</span> <span class="n">Ef</span>
+            <span class="n">qEfh</span> <span class="o">=</span> <span class="n">Ef</span>
+
+        <span class="n">Vt</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">temp</span> <span class="o">/</span> <span class="n">C</span><span class="o">.</span><span class="n">e</span>
+        <span class="c1"># ne1 = 1e10*np.exp(self.Ed / Vt)</span>
+        <span class="c1"># nh1 = 1e10*np.exp(-self.Ed / Vt)</span>
+        <span class="c1"># ne = 1e10 * np.exp(qEfe/Vt)</span>
+        <span class="c1"># nh = 1e10 * np.exp(-qEfh/Vt)</span>
+
+        <span class="c1"># print(ne1, nh1)</span>
+        <span class="c1"># print(&#39;inside thins&#39;,(k * ne1 +nh)/(k*ne + nh1))</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="mi">1</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">qEfe</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ed</span><span class="p">)</span> <span class="o">/</span> <span class="n">Vt</span><span class="p">)</span>
+        <span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="n">k</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="o">-</span><span class="n">qEfh</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ed</span><span class="p">)</span> <span class="o">/</span> <span class="n">Vt</span><span class="p">)</span>
+        <span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ed</span> <span class="o">/</span> <span class="n">Vt</span><span class="p">)</span></div>
+<span class="c1">#</span>
+
+<div class="viewcode-block" id="SingleLevel.recombination_SS"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.SingleLevel.recombination_SS">[docs]</a>    <span class="k">def</span> <span class="nf">recombination_SS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qEfe</span><span class="p">,</span> <span class="n">qEfh</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">ni</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This calculates the recombiation occuring through a defect in steady state.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        qEfe : float eV</span>
+<span class="sd">            The quasi Fermi energy level of electons</span>
+<span class="sd">        qEfh : float eV</span>
+<span class="sd">            The quasi Fermi energy level of holes</span>
+
+<span class="sd">        temp : float, kelvin</span>
+<span class="sd">            temperature of the sample</span>
+<span class="sd">        ni : float, cm^-3</span>
+<span class="sd">            the intrinsic carrier density</span>
+
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+
+<span class="sd">        The emission and capture rates are the same as a shockley read hall defect.</span>
+
+<span class="sd">        This uses the Sah and Shockley formalisation, eqn 3.19 in 10.1103/PhysRev.109.1103 but with one level, which is the same as</span>
+<span class="sd">        Shockley dx.doi.org/10.1103/PhysRev.87.835.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        We can get this value by either providing a float</span>
+
+<span class="sd">        &gt;&gt;&gt; s = SingleDefect(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;{0:.2e}&#39;.format(s.recombination_SS(0.3,-0.3, 300, 1e10)))</span>
+<span class="sd">        1.00e+20</span>
+
+<span class="sd">        Or a list of fermi energy levels</span>
+<span class="sd">        if we reduce the capture cross sections we get less recombiation</span>
+
+<span class="sd">        &gt;&gt;&gt; s = SingleDefect(Ed=0, sigma_e=1e-15, sigma_h=1e-15, Nd = 1e12)</span>
+<span class="sd">        &gt;&gt;&gt; print(s.recombination_SS([0.3,0],[0,-0.3], 300, 1e10))</span>
+<span class="sd">        [1.68994373e+14 2.04991721e+14]</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qEfe</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">qEfe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">qEfe</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qEfh</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">qEfh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">qEfh</span><span class="p">])</span>
+
+        <span class="n">ne</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">qEfe</span> <span class="o">*</span> <span class="n">C</span><span class="o">.</span><span class="n">e</span> <span class="o">/</span> <span class="n">C</span><span class="o">.</span><span class="n">k</span> <span class="o">/</span> <span class="n">temp</span><span class="p">)</span>
+        <span class="n">nh</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">qEfh</span> <span class="o">*</span> <span class="n">C</span><span class="o">.</span><span class="n">e</span> <span class="o">/</span> <span class="n">C</span><span class="o">.</span><span class="n">k</span> <span class="o">/</span> <span class="n">temp</span><span class="p">)</span>
+
+        <span class="n">ne1</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ed</span> <span class="o">*</span> <span class="n">C</span><span class="o">.</span><span class="n">e</span> <span class="o">/</span> <span class="n">C</span><span class="o">.</span><span class="n">k</span> <span class="o">/</span> <span class="n">temp</span><span class="p">)</span>
+        <span class="n">nh1</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">Ed</span> <span class="o">*</span> <span class="n">C</span><span class="o">.</span><span class="n">e</span> <span class="o">/</span> <span class="n">C</span><span class="o">.</span><span class="n">k</span> <span class="o">/</span> <span class="n">temp</span><span class="p">)</span>
+
+        <span class="n">tau_e</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_e</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_e</span>
+        <span class="n">tau_h</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_h</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_h</span>
+
+        <span class="n">_ne</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ne</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="n">ne</span>
+        <span class="n">_nh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nh</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="n">nh</span>
+        <span class="n">_ni</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nh</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="n">ni</span>
+
+        <span class="c1"># SRH recombiation</span>
+        <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span> <span class="o">*</span> <span class="p">(</span><span class="n">_ne</span> <span class="o">*</span> <span class="n">_nh</span> <span class="o">-</span> <span class="n">ni</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">_nh</span> <span class="o">+</span> <span class="n">nh1</span><span class="p">)</span> <span class="o">*</span> <span class="n">tau_e</span> <span class="o">+</span> <span class="p">(</span><span class="n">_ne</span> <span class="o">+</span> <span class="n">ne1</span><span class="p">)</span> <span class="o">*</span> <span class="n">tau_h</span><span class="p">)</span>
+
+        <span class="c1"># suming over all the defect state recombiation</span>
+        <span class="k">if</span> <span class="n">U</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">U</span> <span class="o">=</span> <span class="n">U</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">U</span></div>
+
+<div class="viewcode-block" id="SingleLevel.emitted_e"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.SingleLevel.emitted_e">[docs]</a>    <span class="k">def</span> <span class="nf">emitted_e</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nde</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The emission rate of electrons</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nde : float</span>
+<span class="sd">            the number of electrons in the defect</span>
+<span class="sd">        ni : float</span>
+<span class="sd">            the instrinc carrier density of the host semiconductor</span>
+<span class="sd">        temp : float, Kelvin</span>
+<span class="sd">            the temperaure of the lattice.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_e_emission_coef</span><span class="p">(</span><span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span> <span class="o">*</span> <span class="n">nde</span></div>
+
+<div class="viewcode-block" id="SingleLevel.emitted_h"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.SingleLevel.emitted_h">[docs]</a>    <span class="k">def</span> <span class="nf">emitted_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nde</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The emission rate of holes</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nde : float</span>
+<span class="sd">            the number of electrons in the defect</span>
+<span class="sd">        ni : float</span>
+<span class="sd">            the instrinc carrier density of the host semiconductor</span>
+<span class="sd">        temp : float, Kelvin</span>
+<span class="sd">            the temperaure of the lattice.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">ndh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span> <span class="o">-</span> <span class="n">nde</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_h_emission_coef</span><span class="p">(</span><span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span> <span class="o">*</span> <span class="n">ndh</span></div>
+
+<div class="viewcode-block" id="SingleLevel.capture_e"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.SingleLevel.capture_e">[docs]</a>    <span class="k">def</span> <span class="nf">capture_e</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nde</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The capture rate of electrons</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ne : float</span>
+<span class="sd">            the number of free electrons</span>
+<span class="sd">        nde : float</span>
+<span class="sd">            the number of electrons in the defect</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">ndh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span> <span class="o">-</span> <span class="n">nde</span>
+        <span class="c1"># note that the division by Nd removes its impact</span>
+        <span class="k">return</span> <span class="n">ne</span> <span class="o">*</span> <span class="n">nth</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_emin</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span></div>
+
+<div class="viewcode-block" id="SingleLevel.capture_h"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.SingleLevel.capture_h">[docs]</a>    <span class="k">def</span> <span class="nf">capture_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">nde</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The capture rate of holes</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nh : float</span>
+<span class="sd">            the number of free holes</span>
+<span class="sd">        nde : float</span>
+<span class="sd">            the number of electrons in the defect</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># note that the division by Nd removes its impact</span>
+        <span class="k">return</span> <span class="n">nh</span> <span class="o">*</span> <span class="n">nte</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_hmin</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tau_emin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        the Shockley Read-Hall electron lifetime</span>
+
+
+<span class="sd">        Examples</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &gt;&gt;&gt; s = SingleDefect(Ed=0, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;{0:.2e} us&#39;.format(s.tau_emin))</span>
+<span class="sd">        4.88e-06 us</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tau_emin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_e</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_e</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tau_emin</span>
+
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@tau_emin</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">tau_emin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_e</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__tau_emin</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tau_hmin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The Shockley Read-Hall electron lifetime</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; s = SingleDefect(Ed=0, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;{0:.2e} us&#39;.format(s.tau_hmin))</span>
+<span class="sd">        5.92e-06 us</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tau_hmin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_h</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_h</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tau_hmin</span>
+
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@tau_hmin</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">tau_hmin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__tau_hmin</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_h</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sigma_h</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The hole capture cross section</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_h</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tau_hmin</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_h</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_h</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@sigma_h</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">sigma_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__tau_hmin</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_h</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sigma_e</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The electron capture cross section</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_h</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tau_emin</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_e</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_e</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@sigma_e</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">sigma_e</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__tau_emin</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_e</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;tau_hmin&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_hmin</span><span class="p">,</span>
+                <span class="s1">&#39;tau_emin&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_emin</span><span class="p">,</span>
+                <span class="s1">&#39;Ed&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ed</span><span class="p">,</span>
+                <span class="s1">&#39;Nd&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span><span class="p">,</span>
+                <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="MultiLevel"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.MultiLevel">[docs]</a><span class="k">class</span> <span class="nc">MultiLevel</span><span class="p">(</span><span class="n">SingleLevel</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This class represents a Sah and Shockey defect defect with tow or more states.</span>
+
+<span class="sd">    Each state must be defined with its own parameters, being the same for a single level defect.</span>
+
+<span class="sd">    A single defect has:</span>
+<span class="sd">        1. Ed, the energy level of the defect from midgap.</span>
+<span class="sd">        2. sigma_h or tau_h. The capture cross section for holes, or the minimum hole lifetime, respecitvly.</span>
+<span class="sd">        3. sigma_n or tau_e  The capture cross section for electrons, or the minimum electron lifetime, respecitvly.</span>
+<span class="sd">        4. The charge on the defect, now under the vairable charge (occupied_charge, unoccupied_charge).</span>
+
+<span class="sd">    so here eveything is passed, instead of as a float as a list.</span>
+
+<span class="sd">    Other things that are important are:</span>
+<span class="sd">        1. the concentration of the defect (Nd)</span>
+<span class="sd">        2. the thermal velocities (vth_h, vth_e)</span>
+
+
+<span class="sd">    All these are able to be set at the initialsation of the defect or later.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Nd : float</span>
+<span class="sd">        The defect concentration</span>
+<span class="sd">    Ed : array like,</span>
+<span class="sd">        The gibbs free energy of the defect. length m</span>
+<span class="sd">    vth_h : float</span>
+<span class="sd">        The thermal velocity of holes</span>
+<span class="sd">    vth_e : float</span>
+<span class="sd">        The thermal velocity of electrons</span>
+<span class="sd">    charge : array like,</span>
+<span class="sd">        The charge of each charge state of of the defect. length m+1</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sigma_e</span><span class="p">,</span> <span class="n">sigma_h</span><span class="p">,</span> <span class="n">Ed</span><span class="p">,</span> <span class="n">Nd</span><span class="p">,</span> <span class="n">charge</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">Ed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Ed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Ed</span><span class="p">)</span>
+
+        <span class="n">vals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">charge</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)),</span> <span class="n">key</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># remove sorted from line below</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">charge</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">charge</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">index</span><span class="p">]</span>
+            <span class="c1"># self.charge = [(charge[i]) for i in index]</span>
+            <span class="c1"># print(self.charge)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">charge</span> <span class="o">=</span> <span class="n">charge</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="c1"># initalise the class using the index from the charge of the defect.</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sigma_e</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sigma_e</span><span class="p">)[</span><span class="n">index</span><span class="p">],</span> <span class="n">sigma_h</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="n">sigma_h</span><span class="p">)[</span><span class="n">index</span><span class="p">],</span> <span class="n">Ed</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Ed</span><span class="p">)[</span><span class="n">index</span><span class="p">],</span> <span class="n">Nd</span><span class="o">=</span><span class="n">Nd</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dic</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        sets the values in provided dictionary</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MultiLevel.current_net_charge"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.MultiLevel.current_net_charge">[docs]</a>    <span class="k">def</span> <span class="nf">current_net_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ncs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculates the net charge of the defect given a charge distribution.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge</span><span class="p">]</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="n">ncs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MultiLevel.net_charge"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.MultiLevel.net_charge">[docs]</a>    <span class="k">def</span> <span class="nf">net_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ef</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculates the net charge of the defect given fermi energy level and temperature.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Ef : float or array, unit eV</span>
+<span class="sd">            the fermi energy level or quasi fermi energy level. If both electron and hole are provided the electron is to be provided first.</span>
+<span class="sd">        temp : float in K</span>
+<span class="sd">            The temperature of the sample.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">ncs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_state_concentration</span><span class="p">(</span><span class="n">Ef</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+
+        <span class="c1"># get the charge of each level</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge</span><span class="p">]</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="n">ncs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MultiLevel.recombination_SS_ateachlevel"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.MultiLevel.recombination_SS_ateachlevel">[docs]</a>    <span class="k">def</span> <span class="nf">recombination_SS_ateachlevel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qEfe</span><span class="p">,</span> <span class="n">qEfh</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">ni</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This calculates the recombiation occuring through a defect in steady state. This uses the Sah and Shockley formalisation, eqn 3.19 in 10.1103/PhysRev.109.1103.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        qEfe : float eV</span>
+<span class="sd">            The quasi Fermi energy level of electons</span>
+<span class="sd">        qEfh : float eV</span>
+<span class="sd">            The quasi Fermi energy level of holes</span>
+
+<span class="sd">        temp : float, kelvin</span>
+<span class="sd">            temperature of the sample</span>
+<span class="sd">        ni : float, cm^-3</span>
+<span class="sd">            the intrinsic carrier density</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        recombiation : array (nxm), cm^-3</span>
+<span class="sd">            where n is the number of quasi fermi energy level set, and m is the number of defect levels.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qEfe</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">qEfe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">qEfe</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qEfh</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">qEfh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">qEfh</span><span class="p">])</span>
+
+        <span class="c1"># getting the carrier from the fermi energy levels</span>
+        <span class="n">ne</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">qEfe</span> <span class="o">*</span> <span class="n">C</span><span class="o">.</span><span class="n">e</span> <span class="o">/</span> <span class="n">C</span><span class="o">.</span><span class="n">k</span> <span class="o">/</span> <span class="n">temp</span><span class="p">)</span>
+        <span class="n">nh</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">qEfh</span> <span class="o">*</span> <span class="n">C</span><span class="o">.</span><span class="n">e</span> <span class="o">/</span> <span class="n">C</span><span class="o">.</span><span class="n">k</span> <span class="o">/</span> <span class="n">temp</span><span class="p">)</span>
+
+        <span class="c1"># getting the other things</span>
+        <span class="n">ne1</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ed</span> <span class="o">*</span> <span class="n">C</span><span class="o">.</span><span class="n">e</span> <span class="o">/</span> <span class="n">C</span><span class="o">.</span><span class="n">k</span> <span class="o">/</span> <span class="n">temp</span><span class="p">)</span>
+        <span class="n">nh1</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">Ed</span> <span class="o">*</span> <span class="n">C</span><span class="o">.</span><span class="n">e</span> <span class="o">/</span> <span class="n">C</span><span class="o">.</span><span class="n">k</span> <span class="o">/</span> <span class="n">temp</span><span class="p">)</span>
+
+        <span class="n">tau_e</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_e</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_e</span>
+        <span class="n">tau_h</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_h</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_h</span>
+
+        <span class="n">Ns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="n">Ns1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+
+        <span class="c1"># getting the number of charge state concentration</span>
+        <span class="k">for</span> <span class="n">qefe</span><span class="p">,</span> <span class="n">qefh</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qEfe</span><span class="p">,</span> <span class="n">qEfh</span><span class="p">):</span>
+            <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_state_concentration</span><span class="p">([</span><span class="n">qefe</span><span class="p">,</span> <span class="n">qefh</span><span class="p">],</span> <span class="n">temp</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">Ns</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">Ns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">N</span><span class="p">[</span><span class="mi">1</span><span class="p">:]])</span>
+                <span class="n">Ns1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">N</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">Ns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">Ns</span><span class="p">,</span>  <span class="n">N</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+                <span class="n">Ns1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">Ns1</span><span class="p">,</span>  <span class="n">N</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="c1"># print(Ns.shape)</span>
+        <span class="k">if</span> <span class="n">Ns</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">Ns</span> <span class="o">=</span> <span class="n">Ns</span>
+            <span class="n">Ns1</span> <span class="o">=</span> <span class="n">Ns1</span>
+
+        <span class="c1"># ensureing the vairables have the right shape</span>
+        <span class="n">_ne</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ne1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ne</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="n">ne</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">_nh</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ne1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nh</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="n">nh</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">_ni</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ne1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nh</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="n">ni</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="c1"># SRH recombiation</span>
+        <span class="n">U</span> <span class="o">=</span> <span class="p">(</span><span class="n">_ne</span> <span class="o">*</span> <span class="n">_nh</span> <span class="o">-</span> <span class="n">ni</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">_nh</span> <span class="o">+</span> <span class="n">nh1</span><span class="p">)</span> <span class="o">*</span> <span class="n">tau_e</span> <span class="o">+</span> <span class="p">(</span><span class="n">_ne</span> <span class="o">+</span> <span class="n">ne1</span><span class="p">)</span> <span class="o">*</span> <span class="n">tau_h</span><span class="p">)</span>
+
+        <span class="c1"># print(Ns + Ns1, &#39;the number of defects</span>
+        <span class="c1"># calculating the recombiation in each state</span>
+        <span class="n">U</span> <span class="o">=</span> <span class="p">(</span><span class="n">Ns</span> <span class="o">+</span> <span class="n">Ns1</span><span class="p">)</span> <span class="o">*</span> <span class="n">U</span>
+        <span class="k">return</span> <span class="n">U</span></div>
+
+<div class="viewcode-block" id="MultiLevel.recombination_SS"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.MultiLevel.recombination_SS">[docs]</a>    <span class="k">def</span> <span class="nf">recombination_SS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qEfe</span><span class="p">,</span> <span class="n">qEfh</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">ni</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This calculates the total recombiation occuring through all defect levels in steady state.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        qEfe : float eV</span>
+<span class="sd">            The quasi Fermi energy level of electons</span>
+<span class="sd">        qEfh : float eV</span>
+<span class="sd">            The quasi Fermi energy level of holes</span>
+
+<span class="sd">        temp : float, kelvin</span>
+<span class="sd">            temperature of the sample</span>
+<span class="sd">        ni : float, cm^-3</span>
+<span class="sd">            the intrinsic carrier density</span>
+
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The emission and capture rates are the same as a shockley read hall defect.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recombination_SS_ateachlevel</span><span class="p">(</span><span class="n">qEfe</span><span class="p">,</span> <span class="n">qEfh</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">ni</span><span class="p">)</span>
+
+        <span class="c1"># suming over all the defect state recombiation</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">U</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">U</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">U</span></div>
+
+<div class="viewcode-block" id="MultiLevel.capture_e"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.MultiLevel.capture_e">[docs]</a>    <span class="k">def</span> <span class="nf">capture_e</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ne</span><span class="p">,</span> <span class="n">ncs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The net transition of electonrs into all levels of a multi level defect</span>
+
+<span class="sd">        Note here ncs represents the number of defects in each charge stage. It should be listed from the lowest level upwards. It should be one larger than the numer of capture cross sections/energy levels of the defect.</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ne : float</span>
+<span class="sd">            The number of electrons in the conduction band</span>
+
+<span class="sd">        ncs : array</span>
+<span class="sd">            the number of defects in each charge stage. It should be listed from the lowest level upwards.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">ne</span> <span class="o">*</span> <span class="n">ncs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_e</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_e</span></div>
+
+<div class="viewcode-block" id="MultiLevel.capture_h"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.MultiLevel.capture_h">[docs]</a>    <span class="k">def</span> <span class="nf">capture_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">ncs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The net transition of holes into all levels of a multi level defect</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nh : float</span>
+<span class="sd">            The number of holes in the valance band</span>
+
+<span class="sd">        ncs : array</span>
+<span class="sd">            the number of defects in each charge stage. It should be listed from the lowest level upwards.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">return</span> <span class="n">nh</span> <span class="o">*</span> <span class="n">ncs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_h</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_h</span></div>
+
+<div class="viewcode-block" id="MultiLevel.emitted_e"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.MultiLevel.emitted_e">[docs]</a>    <span class="k">def</span> <span class="nf">emitted_e</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ncs</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The net transition of electonrs out all levels of a multi level defect</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ncs : array</span>
+<span class="sd">            the number of defects in each charge stage. It should be listed from the lowest level upwards.</span>
+
+<span class="sd">        ni : float</span>
+<span class="sd">            The intrinsic carrier density</span>
+<span class="sd">        temp : float</span>
+<span class="sd">            The temeprature</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># print(&#39;too many prints&#39;, self._e_emission_coef(ni, temp), ncs[1:])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_e_emission_coef</span><span class="p">(</span><span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span> <span class="o">*</span> <span class="n">ncs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span></div>
+
+<div class="viewcode-block" id="MultiLevel.emitted_h"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.MultiLevel.emitted_h">[docs]</a>    <span class="k">def</span> <span class="nf">emitted_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ncs</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The net transition of holes out all levels of a multi level defect</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nh : array</span>
+<span class="sd">            The number of holes in the valance band</span>
+
+<span class="sd">        ncs : array</span>
+<span class="sd">            the number of defects in each charge stage. It should be listed from the lowest level upwards.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_h_emission_coef</span><span class="p">(</span><span class="n">ni</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span> <span class="o">*</span> <span class="n">ncs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">simulation of defects in semiconductor</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../defects/defects.html">Defect Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/sample.html">Sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../solver/solvers.html">Solvers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Mattias Klaus Juhl.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

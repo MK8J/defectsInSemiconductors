@@ -1,0 +1,331 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>semiconductor.electrical.ionisation &#8212; semiconductor 0.2 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for semiconductor.electrical.ionisation</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/local/bin/python</span>
+<span class="c1"># UTF-8</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pylab</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">semiconductor.helper.helper</span> <span class="k">import</span> <span class="n">BaseModelClass</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">impurity_ionisation_models</span> <span class="k">as</span> <span class="n">IIm</span>
+<span class="kn">from</span> <span class="nn">semiconductor.material.densityofstates</span> <span class="k">import</span> <span class="n">DOS</span>
+<span class="kn">from</span> <span class="nn">semiconductor.general_functions</span> <span class="k">import</span> <span class="n">carrierfunctions</span>
+<span class="kn">from</span> <span class="nn">semiconductor.general_functions</span> <span class="k">import</span> <span class="n">carrierfunctions</span> <span class="k">as</span> <span class="n">CF</span>
+
+
+<div class="viewcode-block" id="Ionisation"><a class="viewcode-back" href="../../../electrical/ionisation.html#semiconductor.electrical.Ionisation">[docs]</a><span class="k">class</span> <span class="nc">Ionisation</span><span class="p">(</span><span class="n">BaseModelClass</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Depending on a dopant level from a band, and the thermal</span>
+<span class="sd">    energy available, a dopant is electrical active (donating or</span>
+<span class="sd">    accepting an electron to the band)  or inactive.</span>
+<span class="sd">    It can take the Parameters
+----------</span>
+
+<span class="sd">    input</span>
+<span class="sd">        material : (string)</span>
+<span class="sd">            The elemental symbol for the material e.g &#39;Si&#39;.</span>
+<span class="sd">        temp : (float)</span>
+<span class="sd">            The temperature of the sample in kelvin. This can not be an array.</span>
+<span class="sd">        author : (string)</span>
+<span class="sd">            The author of the ionisation model being used</span>
+<span class="sd">        ni_author : (string)</span>
+<span class="sd">            The author of the intrinsic carrier concentraion being used.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">_cal_dts</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;material&#39;</span><span class="p">:</span> <span class="s1">&#39;Si&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;temp&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="s1">&#39;author&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;ni_author&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;N_imp&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1e16</span><span class="p">]),</span>
+        <span class="s1">&#39;ne&#39;</span><span class="p">:</span> <span class="mf">1e16</span><span class="p">,</span>
+        <span class="s1">&#39;nh&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;impurity&#39;</span><span class="p">:</span> <span class="s1">&#39;boron&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">author_list</span> <span class="o">=</span> <span class="s1">&#39;ionisation.yaml&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1"># update any values in cal_dts</span>
+        <span class="c1"># that are passed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculationdetails</span> <span class="o">=</span> <span class="n">kwargs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_links</span><span class="p">()</span>
+
+        <span class="c1"># get the address of the authors list</span>
+        <span class="n">author_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;material&#39;</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">author_list</span><span class="p">)</span>
+
+        <span class="c1"># get the models ready</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_int_model</span><span class="p">(</span><span class="n">author_file</span><span class="p">)</span>
+
+        <span class="c1"># initiate the first model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">change_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;author&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_init_links</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Dos</span> <span class="o">=</span> <span class="n">DOS</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;material&#39;</span><span class="p">],</span>
+                       <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">],</span>
+                       <span class="n">author</span><span class="o">=</span><span class="kc">None</span>
+                       <span class="p">)</span>
+
+<div class="viewcode-block" id="Ionisation.update"><a class="viewcode-back" href="../../../electrical/ionisation.html#semiconductor.electrical.Ionisation.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculates the number of ionisied impurities</span>
+
+<span class="sd">        Parameters
+----------</span>
+<span class="sd">            N_imp : (float or numpy array)</span>
+<span class="sd">                number of the impurity in the material</span>
+<span class="sd">            ne : (float or numpy array)</span>
+<span class="sd">                number of electrons</span>
+<span class="sd">            nh : (float or numpy array)</span>
+<span class="sd">               number of holes</span>
+<span class="sd">            impurity : (str)</span>
+<span class="sd">                the element name of the impurity</span>
+<span class="sd">            temp : (optional)</span>
+<span class="sd">                the  temperature in Kelvin to be evaluated</span>
+<span class="sd">            author : (optional str)</span>
+<span class="sd">                the author of the impurity model to use</span>
+
+<span class="sd">        output:</span>
+<span class="sd">            the number of ionised impurities</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculationdetails</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+        <span class="c1"># a check to make sure the model hasn&#39;t changed</span>
+        <span class="k">if</span> <span class="s1">&#39;author&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">change_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;author&#39;</span><span class="p">])</span>
+
+        <span class="c1"># checks if and get the required density of states model</span>
+        <span class="k">if</span> <span class="s1">&#39;dos_author&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">Nc</span><span class="p">,</span> <span class="n">Nv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Dos</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;material&#39;</span><span class="p">],</span>
+                                     <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">],</span>
+                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">[</span><span class="s1">&#39;dos_author&#39;</span><span class="p">]</span>
+                                     <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Nc</span><span class="p">,</span> <span class="n">Nv</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;impurity&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="c1"># get the ionisation fraction</span>
+            <span class="n">iN_imp</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">IIm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;N_imp&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span>
+                    <span class="s1">&#39;ne&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;nh&#39;</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">],</span> <span class="n">Nc</span><span class="p">,</span> <span class="n">Nv</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;impurity&#39;</span><span class="p">]])</span>
+            <span class="c1"># multiply it by the number of dopants</span>
+            <span class="n">iN_imp</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;N_imp&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span><span class="se">\n</span><span class="s1">Warning:</span><span class="se">\n\t</span><span class="s1">&#39;&#39;&#39;</span>
+                  <span class="sd">&#39;&#39;&#39;No such impurity, please check your model&#39;&#39;&#39;</span>
+                  <span class="sd">&#39;&#39;&#39;and spelling.\n\tReturning zero array\n&#39;&#39;&#39;</span><span class="p">)</span>
+            <span class="n">iN_imp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;N_imp&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">iN_imp</span></div>
+
+<div class="viewcode-block" id="Ionisation.update_dopant_ionisation"><a class="viewcode-back" href="../../../electrical/ionisation.html#semiconductor.electrical.Ionisation.update_dopant_ionisation">[docs]</a>    <span class="k">def</span> <span class="nf">update_dopant_ionisation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N_dop</span><span class="p">,</span> <span class="n">nxc</span><span class="p">,</span> <span class="n">impurity</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This is a special function used to determine the number of</span>
+<span class="sd">        ionised dopants given a number of excess carriers, and a</span>
+<span class="sd">        single dopant type.</span>
+
+<span class="sd">        Parameters
+----------</span>
+<span class="sd">            N_dop : (float; |cm-3|)</span>
+<span class="sd">                The dopant density</span>
+<span class="sd">            nxc : (float; |cm-3|)</span>
+<span class="sd">                The excess carrier density</span>
+<span class="sd">            impurity : (str)</span>
+<span class="sd">                The name of the dopant used e.g. boron, phosphorous. The</span>
+<span class="sd">                dopants available depend on the model used</span>
+
+<span class="sd">        output:</span>
+<span class="sd">            N_idop : (float cm^-2)</span>
+<span class="sd">                The number of ionised dopants</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculationdetails</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+        <span class="c1"># a check to make sure the model hasn&#39;t changed</span>
+        <span class="k">if</span> <span class="s1">&#39;author&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">change_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;author&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">N_dop</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">N_dop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">N_dop</span><span class="p">])</span>
+
+        <span class="n">N_idop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">N_dop</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">impurity</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="c1"># TO DO, change this from just running 10 times to a proper check</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">[</span><span class="s1">&#39;tpe_&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">[</span><span class="n">impurity</span><span class="p">]]</span> <span class="o">==</span> <span class="s1">&#39;donor&#39;</span><span class="p">:</span>
+                    <span class="n">Nd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">N_idop</span><span class="p">)</span>
+                    <span class="n">Na</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Nd</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">[</span><span class="s1">&#39;tpe_&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">[</span><span class="n">impurity</span><span class="p">]]</span> <span class="o">==</span> <span class="s1">&#39;acceptor&#39;</span><span class="p">:</span>
+                    <span class="n">Na</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">N_idop</span><span class="p">)</span>
+                    <span class="n">Nd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Na</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;something went wrong in ionisation model&#39;</span><span class="p">)</span>
+
+                <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span> <span class="o">=</span> <span class="n">CF</span><span class="o">.</span><span class="n">get_carriers</span><span class="p">(</span>
+                    <span class="n">Na</span><span class="p">,</span>
+                    <span class="n">Nd</span><span class="p">,</span>
+                    <span class="n">nxc</span><span class="p">,</span>
+                    <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">],</span>
+                    <span class="n">material</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;material&#39;</span><span class="p">],</span>
+                    <span class="n">ni</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cal_dts</span><span class="p">[</span><span class="s1">&#39;ni_author&#39;</span><span class="p">])</span>
+
+                <span class="n">N_idop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                    <span class="n">N_imp</span><span class="o">=</span><span class="n">N_dop</span><span class="p">,</span> <span class="n">ne</span><span class="o">=</span><span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="o">=</span><span class="n">nh</span><span class="p">,</span> <span class="n">impurity</span><span class="o">=</span><span class="n">impurity</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Not a valid impurity, returning 100</span><span class="si">% i</span><span class="s1">onisation&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">N_idop</span></div>
+
+<div class="viewcode-block" id="Ionisation.check_models"><a class="viewcode-back" href="../../../electrical/ionisation.html#semiconductor.electrical.Ionisation.check_models">[docs]</a>    <span class="k">def</span> <span class="nf">check_models</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Plots a check of the modeled data against Digitised data from either</span>
+<span class="sd">        papers or from other implementations of the model.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="s1">&#39;Ionised impurities&#39;</span><span class="p">)</span>
+
+        <span class="n">iN_imp</span> <span class="o">=</span> <span class="n">N_imp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+
+        <span class="n">dn</span> <span class="o">=</span> <span class="mf">1e10</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="mi">300</span>
+
+        <span class="k">for</span> <span class="n">impurity</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;phosphorous&#39;</span><span class="p">,</span> <span class="s1">&#39;arsenic&#39;</span><span class="p">]:</span>
+
+            <span class="n">iN_imp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_dopant_ionisation</span><span class="p">(</span><span class="n">N_imp</span><span class="p">,</span>
+                                                   <span class="n">dn</span><span class="p">,</span>
+                                                   <span class="n">impurity</span><span class="p">,</span>
+                                                   <span class="n">temp</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">iN_imp</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                    <span class="n">N_imp</span><span class="p">,</span> <span class="n">iN_imp</span> <span class="o">/</span> <span class="n">N_imp</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Altermatt: &#39;</span> <span class="o">+</span> <span class="n">impurity</span><span class="p">)</span>
+
+        <span class="n">test_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span>
+            <span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="s1">&#39;check data&#39;</span><span class="p">,</span> <span class="s1">&#39;donors.csv&#39;</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">test_file</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="c1"># print i</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">[:,</span> <span class="n">i</span><span class="p">],</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="s1">&#39;r.&#39;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Digitised data&#39;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Impurity (cm$^{-3}$)&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Fraction of Ionised impurities (%)&#39;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">semiconductor</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../material/material.html">Material properties</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../electrical/electrical.html">Electrical properties</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../recombiation/recombination.html">Recombination properties</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Mattias Klaus Juhl.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
