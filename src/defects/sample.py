@@ -378,10 +378,12 @@ class Sample():
 
         Returns
         -------
-        ne0 : float
+        ne: float
             the free electron concentration
-        nh0 : float
+        nh: float
             the free hole concentration
+        nd: array like
+            the number of defects in each state
 
         '''
         def charges(mj):

@@ -185,14 +185,15 @@ class SingleLevel():
 
         When Ef = Ed the occupation ratio should be 1, i.e. the defects occupy the same number
 
-        >>> s = SingleLevel(Ed=0., sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+        >>> s = SingleLevel(Ed=0., sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12, vth_e=1e7, vth_h=1e7)
         >>> print('n_de = {0:.2f}'.format(s.occupation_ratio_SS(0, 300)))
         n_de = 1.00
 
-        Moreover, for symetric capture cross sections and a defect at midgap, if a symetric splitting occurs we get
+        
+        The same result occurs for symmetric capture cross sections, thermal velocities, and symmetric quasi Fermi energy levels and a defect at midgap, if a symmetric splitting occurs we get
 
         >>> print('n_de = {0:.2f}'.format(s.occupation_ratio_SS([0.3,-0.3], 300)))
-        n_de = 1.21
+        n_de = 1.00
 
 
         If we move away from midgap, this doesn't hold

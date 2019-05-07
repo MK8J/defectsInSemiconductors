@@ -18,7 +18,7 @@ def transient_decay(s, nxc, t_stepf=500, t_stepNo=1000, auto=True, nxc_min=1e8, 
         The steady state number of excess carrier from which the decay states
     t_stepf : (numebr, optional)
         The step size of the numerical solution compared to the lowest of the SRH and radiative Lifetime
-    t_stopNo : (number, optional)
+    t_stepNo : (number, optional)
         The number of time steps to take
     auto : (bool)
         If this is true, the simulation step size and number of steps will be increased until a desired excess carrier density is reached.
@@ -57,9 +57,9 @@ def transient_decay(s, nxc, t_stepf=500, t_stepNo=1000, auto=True, nxc_min=1e8, 
         elif all(isinstance(dft, defects.SingleLevel) for dft in s.defectlist):
 
             nte = [dft.Nd for dft in s.defectlist]
-            _ne, _nh, _t, _nd = trans2(
+            _ne, _nh, _t, _nd = trans(
                 s, ne=ne0, nh=nh0, nte=nte,
-                G_ss=G_ss, t_stepf=t_stepf)
+                G_ss=G_ss, t_stepf=t_stepf, t_stepNo=t_stepNo)
         else:
             print('somethign went wrong', s.defectlist)
             print(all(isinstance(dft, defects.MultiLevel)
@@ -333,7 +333,7 @@ def squareWavePulse(s, t_stepf=500, t_stepNo=1000, Gss=1e20, plot_carriers=True,
     return ne, nh, other, t
 
 
-def trans(sample, ne, nh, nte, G_ss=1e22, t_stepf=2000):
+def trans(sample, ne, nh, nte, G_ss=1e22, t_stepf=2000, t_stepNo=10000):
     '''
     A function that calculates the carrier density with time, under transient conditions.
     You need to provide the carrier density at which the simulations starts, and the
@@ -369,12 +369,13 @@ def trans(sample, ne, nh, nte, G_ss=1e22, t_stepf=2000):
         the electrons in the traps
     '''
 
-    return _SRH_trans2(ne=ne, nh=nh, nte=nte, Nacc=sample.Nacc,
-                       Ndon=sample.Ndon,
-                       ni=sample.ni,
-                       temp=sample.temp,
-                       dft_list=sample.defectlist, bkg_tau=sample.tau_rad,
-                       G_ss=G_ss, t_stepf=t_stepf)
+    return _SRH_trans(ne=ne, nh=nh, nte=nte, Nacc=sample.Nacc,
+                      Ndon=sample.Ndon,
+                      ni=sample.ni,
+                      temp=sample.temp,
+                      dft_list=sample.defectlist, bkg_tau=sample.tau_rad,
+                      G_ss=G_ss, t_stepf=t_stepf, t_stepNo=t_stepNo,
+                      ne0=sample.ne0, nh0=sample.nh0)
 
 
 def trans_multilevel(sample, ne, nh, ncs, G_ss=1e22, t_stepf=2000, t_stepNo=10000):
@@ -419,7 +420,7 @@ def trans_multilevel(sample, ne, nh, ncs, G_ss=1e22, t_stepf=2000, t_stepNo=1000
                             G_ss=G_ss, t_stepf=t_stepf,  t_stepNo=t_stepNo, ne0=sample.ne0, nh0=sample.nh0)
 
 
-def _SRH_trans(ne, nh, nte,  Nacc, Ndon, ni, temp, dft_list, bkg_tau, G_ss=1e22, t_stepf=2000, t_stepNo=10000):
+def _SRH_trans(ne, nh, nte,  Nacc, Ndon, ni, ne0, nh0, temp, dft_list, bkg_tau, G_ss=1e22, t_stepf=2000, t_stepNo=10000):
     '''
     Solve the excess carrier density with time. It assumes the
 
@@ -497,9 +498,6 @@ def _SRH_trans(ne, nh, nte,  Nacc, Ndon, ni, temp, dft_list, bkg_tau, G_ss=1e22,
         return dydt
 
     # build the input vectors
-
-    # get the dark concentration of each carrier
-    ne0, nh0, nte0 = _dark_carrier_concs_many(Ndon, Nacc, temp, ni, dft_list)
 
     # get all the recombiation sources
     _temp_list = [bkg_tau]

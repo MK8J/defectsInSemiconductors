@@ -50,51 +50,6 @@ def escape_time_constants(Ed, sigma_e, sigma_h, ni, temp, ne0, nh0, bk_tau):
             'HH-simp': HornbeckHanes_simplified(Ed, sigma_e, sigma_h, ni, ne0, nh0,  temp, bk_tau)}
 
 
-def __get_HH_full(tau_r, tau_dr, sigma_m, vth_m, nte, nte0, n_i, Ed, temp):
-    '''
-    Man there is a lot of defined vairables in this paper. this current;y doesn't work
-
-    Parameters
-
-    tau_r:
-        recombiation in the bulk of the semiconductor
-    tau_g:
-        generation of minority carriers from the trap. sigma_e vth_e n_i exp(+-Ed)z`
-    tau_dr:
-        recombination in the defect
-    simga:
-        capture cross section of the minority
-    vth_m: thermal velocity of the minority carrier
-    N: change in occupation from the dark.
-    y: 1 under illumination 0 in the dark. Trap occupation.
-
-    '''
-
-    Vt = C.k * temp / C.e
-
-    dt = abs(nte[:] - nte[-1])
-    N = abs(nte[0] - nte[-1])
-    y = abs(dt) / N
-
-    tau_g = 1 / (sigma_m * vth_m * n_i * np.exp(Ed / Vt))
-
-    print('tau_g: {0:.2e} tau_r {1:.2e} Nsigmavth_m {2:.2e}'.format(
-        tau_g, tau_r, N * sigma_m * vth_m))
-    # tau_ge = sigma_e * vth_e * n_i np.exp(Ed / Vt)
-    # tau_gh = sigma_h * vth_h * n_i np.exp(-Ed / Vt)
-
-    itau_m = 1 / tau_dr + 1 / \
-        (tau_g + tau_r * tau_g * N * sigma_m * vth_m * (1 - y))
-
-    # itau_e = 1 / t_bulk + 1 / \
-    # (tau_ge + tau_r * tau_g * N * sigma_e * vth_e * (1 - y))
-
-    # itau_h = 1 / t_bulk + 1 / \
-    # (tau_gh + tau_r * tau_g * N * sigma_h * vth_h * (1 - y))
-
-    return 1 / itau_m
-
-
 def get_electron_timeconstant(Ed, sigma_e,  ni, temp=300):
     '''
     Get the time for the emission of an electron
@@ -309,9 +264,10 @@ def get_PC_transient(Ed, sigma_e, sigma_h, ni, ne0, nh0, temp=300):
     return esc_thran
 
 
-def HornbeckHanes_simplified(Ed, sigma_e, sigma_h, ni, ne0, nh0, temp, tau_bkg):
+def HornbeckHanes_simplified(Ed, sigma_e, sigma_h, Nd, ni, ne0, nh0, temp, tau_bkg):
     '''
-    Calculates the time constant from hornbeck and Hanes Simplified model
+    Calculates the time constant from hornbeck and Hanes Simplified model.
+    This is equation 13 from 10.1103/PhysRev.97.311
 
     Parameters
     ----------
@@ -339,23 +295,161 @@ def HornbeckHanes_simplified(Ed, sigma_e, sigma_h, ni, ne0, nh0, temp, tau_bkg):
     nh1 = ni * np.exp(-Ed / Vt)
     ne1 = ni * np.exp(Ed / Vt)
 
+    Ef = np.log(ni / nh0) * Vt
+
     if nh0 > ne0:
         ne_thing = ne1
         nh_thing = nh1 + nh0
+
+        Ndh = Nd / (np.exp(-(Ed - Ef) / Vt) + 1)
+        tau_t = 1. / (sigma_e * vth_e * Nd)
+
     else:
         ne_thing = ne1 + ne0
         nh_thing = nh1
 
-    Nd = max(nh0, ne0)
+        Nde = Nd / (np.exp((Ed - Ef) / Vt) + 1)
+        tau_t = 1. / (sigma_e * vth_e * Nd)
 
     tau_d = 1. / (sigma_e * vth_e * (ne_thing) +
                   sigma_h * vth_h * (nh_thing))
 
-    tau_t = 1. / (sigma_e * vth_e * Nd)
-
     HH_s = tau_d + tau_bkg * tau_d / tau_t
     return HH_s
 
+
+def HH_full(Ed, sigma_e, sigma_h, Nd, ni, ne0, nh0, temp, tau_bkg):
+    '''
+    Man there is a lot of defined vairables in this paper. this current;y doesn't work
+
+    Parameters
+
+    tau_r:
+        recombiation in the bulk of the semiconductor
+    tau_g:
+        generation of minority carriers from the trap. sigma_e vth_e n_i exp(+-Ed)z`
+    tau_dr:
+        recombination in the defect
+    simga:
+        capture cross section of the minority
+    vth_m: thermal velocity of the minority carrier
+    N: change in occupation from the dark.
+    y: 1 under illumination 0 in the dark. Trap occupation.
+
+    '''
+
+    Vt = C.k * temp / C.e
+    vth_e, vth_h = tm.update(temp=temp)
+
+    HH_s = HornbeckHanes_simplified(
+        Ed, sigma_e, sigma_h, Nd, ni, ne0, nh0, temp, tau_bkg)
+
+    if nh0 > ne0:
+        tau_b = 1 / (sigma_h * vth_h * nh0)
+
+    else:
+        tau_b = 1 / (sigma_e * vth_e * ne0)
+
+    itau_HH_f = 1 / tau_b + 1 / HH_s
+
+    return 1 / itau_HH_f
+
+
+def HH_s_plot(ax, Ed, sigma_e, sigma_h, Nd, ni, nh0, ne0, temp, tau_BGK):
+
+    vth_e, vth_h = tm.update(temp=temp)
+    Vt = C.k * temp / C.e
+
+    yi = np.linspace(0, 1)
+    Ef = np.log(ni / nh0) * Vt
+
+    tau_r = tau_BGK
+
+    if nh0 > ne0:
+
+        tau_g = 1 / (sigma_e * ni * vth_e * np.exp(Ed / Vt))
+        Ndh = Nd / (np.exp(-(Ed - Ef) / Vt) + 1)
+        tau_t = 1. / (sigma_e * vth_e * Nd)
+        ax.set_xlabel('1-Nde/Ndh')
+    else:
+
+        tau_g = 1 / (sigma_h * ni * vth_h * np.exp(-Ed / Vt))
+        Nde = Nd / (np.exp((Ed - Ef) / Vt) + 1)
+        tau_t = 1. / (sigma_e * vth_e * Nd)
+        ax.set_xlabel('1-Ndh/Nde')
+
+    ax.plot(yi, tau_g + tau_r * tau_g / tau_t * yi, ':', label='HH_s')
+    ax.plot(yi, tau_g + tau_r * tau_g / tau_t * yi, ':', label='HH_s')
+
+    ax.set_ylabel('Tau (s)')
+
+
+def HH_f_plot(ax, Ed, sigma_e, sigma_h, Nd, ni, nh0, ne0, temp, tau_BGK):
+
+    vth_e, vth_h = tm.update(temp=temp)
+    Vt = C.k * temp / C.e
+
+    yi = np.linspace(0, 1)
+    Ef = np.log(ni / nh0) * Vt
+
+    tau_r = tau_BGK
+
+    if nh0 > ne0:
+
+        tau_g = 1 / (sigma_e * ni * vth_e * np.exp(Ed / Vt))
+        Ndh = Nd / (np.exp(-(Ed - Ef) / Vt) + 1)
+        tau_t = 1. / (sigma_e * vth_e * Nd)
+        ax.set_xlabel('1-Nde/Ndh')
+        tau_b = 1 / (sigma_h * vth_h * nh0)
+
+    else:
+
+        tau_g = 1 / (sigma_h * ni * vth_h * np.exp(-Ed / Vt))
+        Nde = Nd / (np.exp((Ed - Ef) / Vt) + 1)
+        tau_t = 1. / (sigma_e * vth_e * Nd)
+        ax.set_xlabel('1-Ndh/Nde')
+        tau_b = 1 / (sigma_e * vth_e * ne0)
+
+    HH_s = tau_g + tau_r * tau_g / tau_t * yi
+    itau_HH_f = 1 / tau_b + 1 / HH_s
+
+    ax.plot(yi, 1 / itau_HH_f, ':', label='HH_f')
+
+    ax.set_ylabel('Tau (s)')
+
+
+def HH_f_plot2(ax, Ed, sigma_e, sigma_h, Nd, ni, nh0, ne0, temp, tau_BGK):
+
+    vth_e, vth_h = tm.update(temp=temp)
+    Vt = C.k * temp / C.e
+
+    yi = np.linspace(0, 1)
+    Ef = np.log(ni / nh0) * Vt
+
+    tau_r = tau_BGK
+
+    if nh0 > ne0:
+
+        tau_g = 1 / (sigma_e * ni * vth_e * np.exp(Ed / Vt))
+        Ndh = Nd / (np.exp(-(Ed - Ef) / Vt) + 1)
+        tau_t = 1. / (sigma_e * vth_e * Nd)
+        ax.set_xlabel('1/(1-Ndh/Nde)')
+        tau_b = 1 / (sigma_h * vth_h * nh0)
+
+    else:
+
+        tau_g = 1 / (sigma_h * ni * vth_h * np.exp(-Ed / Vt))
+        Nde = Nd / (np.exp((Ed - Ef) / Vt) + 1)
+        tau_t = 1. / (sigma_e * vth_e * Nd)
+        ax.set_xlabel('1/(1-Ndh/Nde)')
+        tau_b = 1 / (sigma_e * vth_e * ne0)
+
+    HH_s = tau_g + tau_r * tau_g / tau_t * yi
+    itau_HH_f = 1 / tau_b + 1 / HH_s
+
+    ax.plot(1 / yi, itau_HH_f, ':', label='HH_f')
+
+    ax.set_ylabel('1/Tau (1/s)')
 
 if __name__ == "__main__":
     import doctest
