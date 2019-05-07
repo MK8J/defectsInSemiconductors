@@ -36,9 +36,30 @@
 <h1>Trapping time constants<a class="headerlink" href="#trapping-time-constants" title="Permalink to this headline">¶</a></h1>
 <p>This module allows for simple calculation of trapping time constants.</p>
 <span class="target" id="module-defects.timeConstants"></span><dl class="function">
+<dt id="defects.timeConstants.HH_full">
+<code class="descclassname">defects.timeConstants.</code><code class="descname">HH_full</code><span class="sig-paren">(</span><em>Ed</em>, <em>sigma_e</em>, <em>sigma_h</em>, <em>Nd</em>, <em>ni</em>, <em>ne0</em>, <em>nh0</em>, <em>temp</em>, <em>tau_bkg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/timeConstants.html#HH_full"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.timeConstants.HH_full" title="Permalink to this definition">¶</a></dt>
+<dd><p>Man there is a lot of defined vairables in this paper. this current;y doesn’t work</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>tau_r:</dt>
+<dd>recombiation in the bulk of the semiconductor</dd>
+<dt>tau_g:</dt>
+<dd>generation of minority carriers from the trap. sigma_e vth_e n_i exp(+-Ed)z`</dd>
+<dt>tau_dr:</dt>
+<dd>recombination in the defect</dd>
+<dt>simga:</dt>
+<dd>capture cross section of the minority</dd>
+</dl>
+<p>vth_m: thermal velocity of the minority carrier
+N: change in occupation from the dark.
+y: 1 under illumination 0 in the dark. Trap occupation.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="defects.timeConstants.HornbeckHanes_simplified">
-<code class="descclassname">defects.timeConstants.</code><code class="descname">HornbeckHanes_simplified</code><span class="sig-paren">(</span><em>Ed</em>, <em>sigma_e</em>, <em>sigma_h</em>, <em>ni</em>, <em>ne0</em>, <em>nh0</em>, <em>temp</em>, <em>tau_bkg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/timeConstants.html#HornbeckHanes_simplified"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.timeConstants.HornbeckHanes_simplified" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates the time constant from hornbeck and Hanes Simplified model</p>
+<code class="descclassname">defects.timeConstants.</code><code class="descname">HornbeckHanes_simplified</code><span class="sig-paren">(</span><em>Ed</em>, <em>sigma_e</em>, <em>sigma_h</em>, <em>Nd</em>, <em>ni</em>, <em>ne0</em>, <em>nh0</em>, <em>temp</em>, <em>tau_bkg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/timeConstants.html#HornbeckHanes_simplified"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.timeConstants.HornbeckHanes_simplified" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the time constant from hornbeck and Hanes Simplified model.
+This is equation 13 from 10.1103/PhysRev.97.311</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

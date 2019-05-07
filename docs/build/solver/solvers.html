@@ -150,7 +150,7 @@ This runs a square wave pulse, cals the components and cals lifeimte</p>
 
 <dl class="function">
 <dt id="defects.solvers.trans">
-<code class="descclassname">defects.solvers.</code><code class="descname">trans</code><span class="sig-paren">(</span><em>sample</em>, <em>ne</em>, <em>nh</em>, <em>nte</em>, <em>G_ss=1e+22</em>, <em>t_stepf=2000</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#trans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.trans" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">defects.solvers.</code><code class="descname">trans</code><span class="sig-paren">(</span><em>sample</em>, <em>ne</em>, <em>nh</em>, <em>nte</em>, <em>G_ss=1e+22</em>, <em>t_stepf=2000</em>, <em>t_stepNo=10000</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#trans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.trans" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that calculates the carrier density with time, under transient conditions.
 You need to provide the carrier density at which the simulations starts, and the
 illumination intensity under which the carriers being subjected to.</p>
@@ -274,7 +274,7 @@ is in steady state at the start of the decay.</p>
 <dt><strong>t_stepf</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(numebr, optional)</span></dt>
 <dd><p class="first last">The step size of the numerical solution compared to the lowest of the SRH and radiative Lifetime</p>
 </dd>
-<dt><strong>t_stopNo</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(number, optional)</span></dt>
+<dt><strong>t_stepNo</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(number, optional)</span></dt>
 <dd><p class="first last">The number of time steps to take</p>
 </dd>
 <dt><strong>auto</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(bool)</span></dt>

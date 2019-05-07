@@ -99,7 +99,7 @@ large class</p>
 <td>Calculate the equlibrium carrier concentration</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#defects.sample.Sample.steady_state_concentraions" title="defects.sample.Sample.steady_state_concentraions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">steady_state_concentraions</span></code></a>(nxc)</td>
-<td>Calculate the steady state concentration of carriers, provided the number of excess minoirty carriers by peturbing the number of excess majority carriers.</td>
+<td>Calculats the steady state concentration of carriers, provided the number of excess minoirty carriers by peturbing the number of excess majority carriers.</td>
 </tr>
 </tbody>
 </table>
@@ -184,7 +184,7 @@ large class</p>
 <dl class="method">
 <dt id="defects.sample.Sample.steady_state_concentraions">
 <code class="descname">steady_state_concentraions</code><span class="sig-paren">(</span><em>nxc</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/sample.html#Sample.steady_state_concentraions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.sample.Sample.steady_state_concentraions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the steady state concentration of carriers,
+<dd><p>Calculats the steady state concentration of carriers,
 provided the number of excess minoirty carriers by peturbing the number of excess majority carriers.</p>
 <p>This assumes a constant intrinsic carrier density.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -199,11 +199,14 @@ provided the number of excess minoirty carriers by peturbing the number of exces
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>ne0</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dt><strong>ne: float</strong></dt>
 <dd><p class="first last">the free electron concentration</p>
 </dd>
-<dt><strong>nh0</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dt><strong>nh: float</strong></dt>
 <dd><p class="first last">the free hole concentration</p>
+</dd>
+<dt><strong>nd: array like</strong></dt>
+<dd><p class="first last">the number of defects in each state</p>
 </dd>
 </dl>
 </td>
