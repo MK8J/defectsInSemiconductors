@@ -366,7 +366,7 @@ class Sample():
 
     def steady_state_concentraions(self, nxc):
         '''
-        Calculate the steady state concentration of carriers,
+        Calculats the steady state concentration of carriers,
         provided the number of excess minoirty carriers by peturbing the number of excess majority carriers.
 
         This assumes a constant intrinsic carrier density.
