@@ -21,9 +21,9 @@ def transient_decay(s, nxc, t_stepf=500, t_stepNo=1000, auto=True, nxc_min=1e8, 
     t_stepNo : (number, optional)
         The number of time steps to take
     auto : (bool)
-        If this is true, the simulation step size and number of steps will be increased until a desired excess carrier density is reached.
+        If this is true, the program will attempt to solve the case until the nxc_min is reached. This is attempbed by appending sequantial simulations with each new simulations the time step (t_stepf) of the last simulation increased by a multiple.
     nxc_min : (float, default=1e8)
-        The excess carrier density at which the transient simulatulation should true and stop. This only has an impact if auto is set to true
+        The excess carrier density at which the transient simulatulation should true and stop. This only has an impact if auto is set to true. the is caculated as the larger of the excess holes or excess electrons.
     G_ss : (float, default = 0)
         Allows for a transient decay to a fixed generation rate.
 
@@ -43,22 +43,33 @@ def transient_decay(s, nxc, t_stepf=500, t_stepNo=1000, auto=True, nxc_min=1e8, 
     # get steady state
     ne0, nh0, nd0 = s.steady_state_concentraions(nxc=nxc)
 
-    def solve():
+    def solve(ne=None, nh=None, ncs=None):
         '''
         This is just a little solver that prevents duplication if auto is used.
         '''
 
+        # these are here for the auto function
+        # if something is passed used them
+
         if all(isinstance(dft, defects.MultiLevel) for dft in s.defectlist):
+            if ne is None or nh is None:
+                ne = ne0
+                nh = nh0
+                ncs = nd0
 
             _ne, _nh, _t, _nd = trans_multilevel(
-                s, ne=ne0, nh=nh0, ncs=nd0,
+                s, ne=ne, nh=nh, ncs=ncs,
                 G_ss=G_ss, t_stepf=t_stepf, t_stepNo=t_stepNo)
 
         elif all(isinstance(dft, defects.SingleLevel) for dft in s.defectlist):
 
-            nte = [dft.Nd for dft in s.defectlist]
+            if ne is None or nh is None:
+                ne = ne0
+                nh = nh0
+                ncs = [dft.Nd for dft in s.defectlist]
+
             _ne, _nh, _t, _nd = trans(
-                s, ne=ne0, nh=nh0, nte=nte,
+                s, ne=ne, nh=nh, nte=ncs,
                 G_ss=G_ss, t_stepf=t_stepf, t_stepNo=t_stepNo)
         else:
             print('somethign went wrong', s.defectlist)
@@ -70,19 +81,31 @@ def transient_decay(s, nxc, t_stepf=500, t_stepNo=1000, auto=True, nxc_min=1e8, 
 
         return _ne, _nh, _t, _nd
 
+    # this is to make it easier to solve
+    # as you don't have to guess the step size
+    # nor the number of points.
     if auto:
         t_stepf = t_stepf
 
         min_val = nxc_min
         nef = nxc
 
-        while nef - min(s.ne0, s.nh0) > min_val:
-            ne, nh, t, nd = solve()
-            t_stepf *= 5
-#            t_stepNo *= 5
-            nef = min(ne[-1], nh[-1])
+        # try running it
+        ne, nh, t, nd = solve()
 
-#             print(nef - min(s.ne0, s.nh0) > min_val)
+        # if it not enough, go deeper
+        # this appends simulations of longer step size onto the current one
+        while nef > min_val:
+
+            _ne, _nh, _t, _nd = solve(ne[-1], nh[-1], nd[-1])
+
+            ne = np.concatenate((ne, _ne[1:]), axis=0)
+            nh = np.concatenate((nh, _nh[1:]), axis=0)
+            nd = np.concatenate((nd, _nd[1:]), axis=0)
+            t = np.concatenate((t, _t[1:] + t[-1]), axis=0)
+
+            t_stepf *= 5
+            nef = max(ne[-1] - s.ne0, nh[-1] - s.nh0)
 
             if t_stepf > 1e11:
                 print('could not reach minimum excess carrier density')
