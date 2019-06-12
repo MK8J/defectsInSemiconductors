@@ -5,7 +5,8 @@ from . import defects
 from . import sample
 from . import solvers
 from . import timeConstants
-__version__ = "0.1.0"
+__version__ = "0.1.01"
+
 
 __title__ = "semiconductor defects"
 __description__ = "Zero dimensional simulations of the macroscopic impact of defects in semiconductors."

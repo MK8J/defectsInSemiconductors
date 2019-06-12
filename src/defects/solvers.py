@@ -87,15 +87,15 @@ def transient_decay(s, nxc, t_stepf=500, t_stepNo=1000, auto=True, nxc_min=1e8, 
     if auto:
         t_stepf = t_stepf
 
-        min_val = nxc_min
-        nef = nxc
-
         # try running it
         ne, nh, t, nd = solve()
 
+        # see if we made it
+        nef = max(ne[-1] - s.ne0, nh[-1] - s.nh0)
+
         # if it not enough, go deeper
         # this appends simulations of longer step size onto the current one
-        while nef > min_val:
+        while nef > nxc_min:
 
             _ne, _nh, _t, _nd = solve(ne[-1], nh[-1], nd[-1])
 
@@ -108,8 +108,8 @@ def transient_decay(s, nxc, t_stepf=500, t_stepNo=1000, auto=True, nxc_min=1e8, 
             nef = max(ne[-1] - s.ne0, nh[-1] - s.nh0)
 
             if t_stepf > 1e11:
-                print('could not reach minimum excess carrier density')
-                min_val = 1e20
+                print('could not reach minimum excess carrier density', nef, nxc_min)
+                nxc_min = 1e20
 
     elif not auto:
 
@@ -118,7 +118,7 @@ def transient_decay(s, nxc, t_stepf=500, t_stepNo=1000, auto=True, nxc_min=1e8, 
     return ne, nh, nd, t
 
 
-def steadyState(s, nxc, plot_carriers=True,   plot_lifetime=True):
+def steadyState(s, nxc, plot_carriers=True,   plot_lifetime=True, output=None):
     '''
     Calculates the steady state lifetime of a sample, give a specific defect.
 
@@ -132,6 +132,8 @@ def steadyState(s, nxc, plot_carriers=True,   plot_lifetime=True):
         determines if the function automatically plots the carriers with time
     plot_lifetime : (bool default  True)
         determines if the function automatically plots the lifetime as a function of excess carriers
+    output : (bool default False)
+        determines the output. If True provides the carrier densities as well
 
     Returns
     -------
@@ -139,6 +141,12 @@ def steadyState(s, nxc, plot_carriers=True,   plot_lifetime=True):
         generation rate required to obtain the excess carrier density
     tau : (numpy array, in seconds)
         the minoirty carrier lifetime
+    ne : (numpy array, in cm^-3, optional)
+        the number of free electrons
+    nh : (numpy array, in cm^-3, optional)
+        the number of free holes
+    nd : (numpy array, in cm^-3, optional)
+        the number of defect states
 
     Examples
     --------
@@ -213,7 +221,10 @@ def steadyState(s, nxc, plot_carriers=True,   plot_lifetime=True):
         plt.xlabel('excess carrier density (cm^-3)')
         plt.loglog()
 
-    return rec, nxc / rec
+    if output:
+        return rec, nxc / rec, ne, nh, nd
+    else:
+        return rec, nxc / rec
 
     # plt.loglog()
 

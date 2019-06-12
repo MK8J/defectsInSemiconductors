@@ -384,6 +384,59 @@ def HH_s_plot(ax, Ed, sigma_e, sigma_h, Nd, ni, nh0, ne0, temp, tau_BGK):
     ax.set_ylabel('Tau (s)')
 
 
+def PC_mutli_nU(Ed, sigma_e, sigma_h, Nd, ni, nh0, ne0, temp, tau_BGK):
+    '''
+    A testing function that assume 3 states and that the middle state has a very low rate of change.
+    '''
+    Vt = C.k * temp / C.e
+    vth_e, vth_h = tm.update(temp=temp)
+
+    eh = sigma_h * vth_h * ni * np.exp(-Ed / Vt)
+    ee = sigma_e * vth_e * ni * np.exp(Ed / Vt)
+
+    ch = nh0 * sigma_h * vth_h
+    ce = ne0 * sigma_e * vth_e
+
+    a1 = eh[0] + ce[0]
+    a2 = eh[1] + ce[1]
+    b2 = ee[0] + ch[0]
+    b3 = ee[1] + ch[1]
+
+    if b3 / (a2 + b2) > 0.1:
+        print('issue b4')
+        if(ee[1] > ch[1]):
+            print('electron emission is to big')
+            print(ee[1], Ed[1])
+        else:
+            print('capture is to big')
+
+    elif a1 / (a2 + b2) > 0.1:
+        print('issue a1')
+        if(eh[0] > ce[0]):
+            print('emission is to big')
+        else:
+            print('capture of electrons is to big')
+
+    # else:
+        # print(b3 / (a2 + b2), a1 / (a2 + b2))
+    if a2 > b2:
+        print(a2 / b2, 'should be larger than 1')
+        if eh[1] > ce[1]:
+            print('emission of hole from the upper level', eh[1])
+        else:
+            print('capture of electron from the upper level')
+    else:
+        if ee[0] > ch[0]:
+            print('capture of electron from the lower level')
+        else:
+            print('emission of hole from the lower level')
+
+    # print('changed')
+    tau1 = (a1 * a2 + b2 * b3) / (a2 + b2)
+    tau2 = a1
+    return 1. / tau1, 1. / tau2
+
+
 def HH_f_plot(ax, Ed, sigma_e, sigma_h, Nd, ni, nh0, ne0, temp, tau_BGK):
 
     vth_e, vth_h = tm.update(temp=temp)
@@ -450,6 +503,7 @@ def HH_f_plot2(ax, Ed, sigma_e, sigma_h, Nd, ni, nh0, ne0, temp, tau_BGK):
     ax.plot(1 / yi, itau_HH_f, ':', label='HH_f')
 
     ax.set_ylabel('1/Tau (1/s)')
+
 
 if __name__ == "__main__":
     import doctest

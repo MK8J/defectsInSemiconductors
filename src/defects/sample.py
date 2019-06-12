@@ -52,7 +52,7 @@ class Sample():
     One of the problems is that there is a lot of properties so this is a very
     large class
 
-        ni, vth_e, vth_h are all calculated values from theoretical models unless a value is provided.
+        ni, vth_e, vth_h are all calculated values from theoretical models unless a value is provided. In that case the value is used. This is also a method to speed up calculations. Passing a value of None can then be used to reset these calculations.
     '''
 
     def __init__(self, **kwargs):
@@ -79,6 +79,8 @@ class Sample():
         self.tau_rad = np.inf
 
         self.__attrs(kwargs)
+
+        self.equlibrium_concentrations()
 
     def __attrs(self, dic):
         '''
@@ -338,7 +340,9 @@ class Sample():
                 ne0 = np.array(majoirty_carrier, dtype=np.float64)
                 nh0 = np.array(ni**2 / majoirty_carrier,
                                dtype=np.float64)
-
+            else:
+                ne0 = ni
+                nh0 = ni
             return ne0, nh0
 
         def possion(majoirty_carrier):
