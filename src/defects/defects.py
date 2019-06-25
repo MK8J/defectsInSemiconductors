@@ -189,7 +189,7 @@ class SingleLevel():
         >>> print('n_de = {0:.2f}'.format(s.occupation_ratio_SS(0, 300)))
         n_de = 1.00
 
-        
+
         The same result occurs for symmetric capture cross sections, thermal velocities, and symmetric quasi Fermi energy levels and a defect at midgap, if a symmetric splitting occurs we get
 
         >>> print('n_de = {0:.2f}'.format(s.occupation_ratio_SS([0.3,-0.3], 300)))
@@ -217,13 +217,7 @@ class SingleLevel():
             qEfh = Ef
 
         Vt = C.k * temp / C.e
-        # ne1 = 1e10*np.exp(self.Ed / Vt)
-        # nh1 = 1e10*np.exp(-self.Ed / Vt)
-        # ne = 1e10 * np.exp(qEfe/Vt)
-        # nh = 1e10 * np.exp(-qEfh/Vt)
 
-        # print(ne1, nh1)
-        # print('inside thins',(k * ne1 +nh)/(k*ne + nh1))
         return (
             1 + k * np.exp((qEfe + self.Ed) / Vt)
         ) / (

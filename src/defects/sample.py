@@ -238,7 +238,10 @@ class Sample():
         )
 
         val = getvalue_modelornumber(self._vth_h, model, 'update',
-                                     author=self._vth_h)[1]
+                                     author=self._vth_h)
+
+        if isinstance(val, tuple):
+            val = val[1]
 
         for i in self.defectlist:
             i.vth_h = val
@@ -261,7 +264,10 @@ class Sample():
         )
 
         val = getvalue_modelornumber(self._vth_e, model, 'update',
-                                     author=self._vth_e)[0]
+                                     author=self._vth_e)
+        if isinstance(val, tuple):
+            val = val[0]
+
         if isinstance(val, np.ndarray):
             if val.shape[0] == 1:
                 val = val[0]

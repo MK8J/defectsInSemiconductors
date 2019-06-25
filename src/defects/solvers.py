@@ -118,9 +118,85 @@ def transient_decay(s, nxc, t_stepf=500, t_stepNo=1000, auto=True, nxc_min=1e8, 
     return ne, nh, nd, t
 
 
-def steadyState(s, nxc, plot_carriers=True,   plot_lifetime=True, output=None):
+def steadyState_carriers(s, nxc, ne, nh,  output=None):
     '''
-    Calculates the steady state lifetime of a sample, give a specific defect.
+    Calculate the steady state lifetime of a sample for the number of carriers.
+
+    Parameters
+    ----------
+    s : (class)
+        the sample class
+    nxc : (array like)
+        The excess carrier density to be evaluated
+    plot_carriers : (bool default  True)
+        determines if the function automatically plots the carriers with time
+    plot_lifetime : (bool default  True)
+        determines if the function automatically plots the lifetime as a function of excess carriers
+    output : (bool default False)
+        determines the output. If True provides the carrier densities as well
+
+    Returns
+    -------
+    gen : (numpy array, in cm^-3)
+        generation rate required to obtain the excess carrier density
+    tau : (numpy array, in seconds)
+        the minoirty carrier lifetime
+    ne : (numpy array, in cm^-3, optional)
+        the number of free electrons
+    nh : (numpy array, in cm^-3, optional)
+        the number of free holes
+    nd : (numpy array, in cm^-3, optional)
+        the number of defect states
+
+    Examples
+    --------
+
+    define a defect
+
+    >>> defect = dict(Ed=[0, -0.35], sigma_e=[3e-14, 1e-16], sigma_h=[3e-15, 1e-15], charge=[[0, -1], [0, 1]], Nd=1e12)
+
+    define the sample properties
+
+    >>> s = Sample()
+    >>> s.tau_rad = 1 # a constant bulk lifetime in seconds
+    >>> s.Nacc = 0 # number acceptors in cm^-3
+    >>> s.Ndon = 1e16 # number donors in cm^-3
+    >>> s.temp = 300 # the sample temperature
+
+    This  can be also used with the single level defect class, but here we are just showing the multi level defect
+
+    >>> s.defectlist = MultiLevelDefect(Ed=defect['Ed'], sigma_e=defect['sigma_e'], sigma_h=defect['sigma_h'], Nd=defect['Nd'], charge=defect['charge'])
+
+
+    >>> nxc = 1e13
+    >>> gen,tau = steadyState(s, nxc, plot_carriers=False,   plot_lifetime=False)
+    >>> print('gen = {0:.2e}cm^-3 \t tau = {1:.2e}s'.format(gen[0], tau[0]))
+    gen = 5.06e+17cm^-3        tau = 1.97e-05s
+    >>> plt.cla()
+    '''
+
+    qEfe = np.log(ne / s.ni) * s.Vt
+    qEfh = -np.log(nh / s.ni) * s.Vt
+
+    rec = np.zeros(nxc.shape)
+    for i in s.defectlist:
+        rec += i.recombination_SS(qEfe, qEfh, s.temp, s.ni)
+
+    rec += nxc / s.tau_rad
+
+    if hasattr(s.defectlist[0], 'recombination_SS_ateachlevel'):
+        lr = s.defectlist[0].recombination_SS_ateachlevel(
+            qEfe, qEfh, s.temp, s.ni)
+
+    if output:
+        return rec, nxc / rec, ne, nh
+    else:
+        return rec, nxc / rec
+
+
+def steadyState_excesscarriers(s, nxc, plot_carriers=True,   plot_lifetime=True, output=None):
+    '''
+    Calculates the steady state lifetime of a sample, give a specific defect given the number of excess carriers.
 
     Parameters
     ----------
