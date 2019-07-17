@@ -337,10 +337,16 @@ class SingleLevel():
 
         Parameters
         ----------
-        ne :
+        ne : array like
             the concentration of free electrons
-        nde :
+        nde : array like
             the concentration of electron in the defect
+
+        Returns
+        -------
+        ce : array like
+            the capture rate of electrons
+
         '''
         ndh = self.Nd - nde
         # note that the division by Nd removes its impact

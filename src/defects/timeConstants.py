@@ -323,6 +323,7 @@ def HH_full(Ed, sigma_e, sigma_h, Nd, ni, ne0, nh0, temp, tau_bkg):
     Man there is a lot of defined vairables in this paper. this current;y doesn't work
 
     Parameters
+    ----------
 
     tau_r:
         recombiation in the bulk of the semiconductor
