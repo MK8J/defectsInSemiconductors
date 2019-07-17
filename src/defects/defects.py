@@ -158,6 +158,7 @@ class SingleLevel():
         >>> s = SingleLevel(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
         >>> print(s.charge_state_concentration([0.4,0.2], 300))
         [4.36472821e+08 9.99563527e+11]
+
         '''
 
         ratio = np.cumprod(np.append(1, self.occupation_ratio_SS(Ef, temp)))
