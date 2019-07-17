@@ -657,27 +657,16 @@ if we reduce the capture cross sections we get less recombiation
 <td><p>returns the net charge of the defect for a given temperature and energy level</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#defects.defects.SingleLevelWithAuger.occupation_ratio_SS" title="defects.defects.SingleLevelWithAuger.occupation_ratio_SS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">occupation_ratio_SS</span></code></a>(Ef, temp)</p></td>
-<td><p>The occupation ratio of the negitive to positive defect charge state</p></td>
+<td><p>The occupation ratio of the negitive to positive defect charge state This works for the general case and is the same as in Sah and Shockley 1958 paper.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#defects.defects.SingleLevelWithAuger.recombination_SS" title="defects.defects.SingleLevelWithAuger.recombination_SS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recombination_SS</span></code></a>(qEfe, qEfh, temp, ni)</p></td>
 <td><p>This calculates the recombiation occuring through a defect in steady state.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#defects.defects.SingleLevelWithAuger.tau_emin" title="defects.defects.SingleLevelWithAuger.tau_emin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tau_emin</span></code></a>(ne, nh)</p></td>
-<td><p>The electron lifetime if all the defect states are available</p></td>
+<td><p>This calculates the electron lifetime if all the defect states are available</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#defects.defects.SingleLevelWithAuger.tau_hmin" title="defects.defects.SingleLevelWithAuger.tau_hmin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tau_hmin</span></code></a>(ne, nh)</p></td>
 <td><p>The hole lifetime if all the defect states are available</p></td>
-</tr>
-</tbody>
-</table>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><strong>params</strong></p></td>
-<td></td>
 </tr>
 </tbody>
 </table>
@@ -685,13 +674,14 @@ if we reduce the capture cross sections we get less recombiation
 <dt id="defects.defects.SingleLevelWithAuger.charge_state_concentration">
 <code class="sig-name descname">charge_state_concentration</code><span class="sig-paren">(</span><em class="sig-param">Ef</em>, <em class="sig-param">temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevelWithAuger.charge_state_concentration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevelWithAuger.charge_state_concentration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retruns the concentration of the the charge states for a defect for specific electron and hole fermy energy levels. The states are reported with the more “positive” levels first.</p>
-<dl class="simple">
-<dt>inputs:</dt><dd><dl class="simple">
-<dt>Ef: (float or list of 2 floats, [Efe, Efh], eV)</dt><dd><p>The Fermi energy level or list of quasi fermi energy level.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>Ef</strong><span class="classifier">(float or list of 2 floats, [Efe, Efh], eV)</span></dt><dd><p>The Fermi energy level or list of quasi fermi energy level.
 If a list is provided it is assumed the electron quasi Fermi
 energy level is first</p>
 </dd>
-<dt>temp: (float, kelvin)</dt><dd><p>temperature of the sample</p>
+<dt><strong>temp</strong><span class="classifier">(float, kelvin)</span></dt><dd><p>temperature of the sample</p>
 </dd>
 </dl>
 </dd>
@@ -703,32 +693,38 @@ energy level is first</p>
 <code class="sig-name descname">net_charge</code><span class="sig-paren">(</span><em class="sig-param">Ef</em>, <em class="sig-param">temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevelWithAuger.net_charge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevelWithAuger.net_charge" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns the net charge of the defect for a given temperature and
 energy level</p>
-<dl class="simple">
-<dt>inputs:</dt><dd><dl class="simple">
-<dt>Ef: (float or list of 2 floats, eV)</dt><dd><p>The Fermi energy level or list of quasi fermi energy level.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>Ef</strong><span class="classifier">(float or list of 2 floats, eV)</span></dt><dd><p>The Fermi energy level or list of quasi fermi energy level.
 If a list is provided it is assumed the electron quasi Fermi
 energy level is first</p>
 </dd>
-<dt>temp: (float, kelvin)</dt><dd><p>temperature of the sample</p>
+<dt><strong>temp</strong><span class="classifier">(float, kelvin)</span></dt><dd><p>temperature of the sample</p>
 </dd>
 </dl>
 </dd>
 </dl>
-<p>Examples
-We can see the change on a defect we now define. Note this is an unusual defect as it has a possible charges of +1 or -1. This is just used now as it makes the example simplier</p>
+<p class="rubric">Examples</p>
+<p>We can see the change on a defect we now define. Note this is an unusual defect as it has a possible charges of +1 or -1. This is just used now as it makes the example simplier</p>
+<p>As a function of the Fermi energy level. It should be negative
+the higher the fermi energy level</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="defects.defects.SingleLevelWithAuger.occupation_ratio_SS">
 <code class="sig-name descname">occupation_ratio_SS</code><span class="sig-paren">(</span><em class="sig-param">Ef</em>, <em class="sig-param">temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevelWithAuger.occupation_ratio_SS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevelWithAuger.occupation_ratio_SS" title="Permalink to this definition">¶</a></dt>
-<dd><p>The occupation ratio of the negitive to positive defect charge state</p>
-<dl class="simple">
-<dt>inputs:</dt><dd><dl class="simple">
-<dt>Ef: (float or list of 2 floats, eV)</dt><dd><p>The Fermi energy level or list of quasi fermi energy level.
+<dd><p>The occupation ratio of the negitive to positive defect charge state
+This works for the general case and is the same as in Sah and Shockley 1958 paper.</p>
+<p>This is equilivant to inver alpha from DOI: 10.1063/1.4906465… well its very similar. But this is correct.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>Ef</strong><span class="classifier">(float or list of 2 floats, eV)</span></dt><dd><p>The Fermi energy level or list of quasi fermi energy level.
 If a list is provided it is assumed the electron quasi Fermi
 energy level is first</p>
 </dd>
-<dt>temp: (float, kelvin)</dt><dd><p>temperature of the sample</p>
+<dt><strong>temp</strong><span class="classifier">(float, kelvin)</span></dt><dd><p>temperature of the sample</p>
 </dd>
 </dl>
 </dd>
@@ -739,32 +735,67 @@ energy level is first</p>
 <dt id="defects.defects.SingleLevelWithAuger.recombination_SS">
 <code class="sig-name descname">recombination_SS</code><span class="sig-paren">(</span><em class="sig-param">qEfe</em>, <em class="sig-param">qEfh</em>, <em class="sig-param">temp</em>, <em class="sig-param">ni</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevelWithAuger.recombination_SS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevelWithAuger.recombination_SS" title="Permalink to this definition">¶</a></dt>
 <dd><p>This calculates the recombiation occuring through a defect in steady state.</p>
-<dl class="simple">
-<dt>inputs:</dt><dd><dl class="simple">
-<dt>qEfe: (float eV)</dt><dd><p>The quasi Fermi energy level of electons</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>qEfe</strong><span class="classifier">(float eV)</span></dt><dd><p>The quasi Fermi energy level of electons</p>
 </dd>
-<dt>qEfh: (float eV)</dt><dd><p>The quasi Fermi energy level of holes</p>
+<dt><strong>qEfh</strong><span class="classifier">(float eV)</span></dt><dd><p>The quasi Fermi energy level of holes</p>
 </dd>
-<dt>temp: (float, kelvin)</dt><dd><p>temperature of the sample</p>
+<dt><strong>temp</strong><span class="classifier">(float, kelvin)</span></dt><dd><p>temperature of the sample</p>
 </dd>
-<dt>ni: (float, cm^-3)</dt><dd><p>the intrinsic carrier density</p>
+<dt><strong>ni</strong><span class="classifier">(float, cm^-3)</span></dt><dd><p>the intrinsic carrier density</p>
 </dd>
 </dl>
 </dd>
 </dl>
-<p>This uses the Evans and Landsberg formalisation, 10.1016/0038-1101(63)90012-1</p>
+<p class="rubric">Notes</p>
+<p>The emission and capture rates are different to  a shockley read hall defect. This uses the Evans and Landsberg formalisation, 10.1016/0038-1101(63)90012-1. Te and Th are equilivant to sigma_e and sigma_h.</p>
+<p class="rubric">Examples</p>
+<p>This gives the same value as a single level as a single level
+&gt;&gt;&gt; s = SingleLevelWithAuger(Ed=0.2, Te=1e-14, Th=1e-14, Tee=0, Teh=0, The=0, Thh=0, Nd = 1e12)
+&gt;&gt;&gt; s1 = SingleLevel(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+&gt;&gt;&gt; print(‘{0:.2e}’.format(s.recombination_SS(0.3,-0.3, 300, 1e10)))
+1.00e+20
+&gt;&gt;&gt; print(‘{0:.2e}’.format(s1.recombination_SS(0.3,-0.3, 300, 1e10)))
+1.00e+20</p>
+<p>Or a list of fermi energy levels</p>
+<p>If we reduce the capture cross sections we get less recombiation
+&gt;&gt;&gt; s = SingleLevelWithAuger(Ed=0, Te=1e-15, Th=1e-15, Tee=0, Teh=0, The=0, Thh=0, Nd = 1e12)
+&gt;&gt;&gt; print(s.recombination_SS([0.3,0],[0,-0.3], 300, 1e10))
+[1.68994373e+14 2.04991721e+14]</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="defects.defects.SingleLevelWithAuger.tau_emin">
 <code class="sig-name descname">tau_emin</code><span class="sig-paren">(</span><em class="sig-param">ne</em>, <em class="sig-param">nh</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevelWithAuger.tau_emin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevelWithAuger.tau_emin" title="Permalink to this definition">¶</a></dt>
-<dd><p>The electron lifetime if all the defect states are available</p>
+<dd><p>This calculates the electron lifetime if all the defect states are available</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ne</strong><span class="classifier">(float cm^-3)</span></dt><dd><p>The electron carrier density</p>
+</dd>
+<dt><strong>nh</strong><span class="classifier">(float cm^-3)</span></dt><dd><p>The hole carrier density</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="defects.defects.SingleLevelWithAuger.tau_hmin">
 <code class="sig-name descname">tau_hmin</code><span class="sig-paren">(</span><em class="sig-param">ne</em>, <em class="sig-param">nh</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/defects.html#SingleLevelWithAuger.tau_hmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.defects.SingleLevelWithAuger.tau_hmin" title="Permalink to this definition">¶</a></dt>
 <dd><p>The hole lifetime if all the defect states are available</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ne</strong><span class="classifier">(float cm^-3)</span></dt><dd><p>The electron carrier density</p>
+</dd>
+<dt><strong>nh</strong><span class="classifier">(float cm^-3)</span></dt><dd><p>The hole carrier density</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

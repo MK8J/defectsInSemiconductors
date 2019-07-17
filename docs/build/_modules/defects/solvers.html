@@ -176,8 +176,6 @@
 <span class="sd">        the number of free electrons</span>
 <span class="sd">    nh : (numpy array, in cm^-3, optional)</span>
 <span class="sd">        the number of free holes</span>
-<span class="sd">    nd : (numpy array, in cm^-3, optional)</span>
-<span class="sd">        the number of defect states</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -188,6 +186,10 @@
 
 <span class="sd">    define the sample properties</span>
 
+<span class="sd">    &gt;&gt;&gt; from defects.sample import Sample</span>
+<span class="sd">    &gt;&gt;&gt; from defects.defects import MultiLevel</span>
+<span class="sd">    &gt;&gt;&gt; from defects.solvers import steadyState_carriers</span>
+
 <span class="sd">    &gt;&gt;&gt; s = Sample()</span>
 <span class="sd">    &gt;&gt;&gt; s.tau_rad = 1 # a constant bulk lifetime in seconds</span>
 <span class="sd">    &gt;&gt;&gt; s.Nacc = 0 # number acceptors in cm^-3</span>
@@ -196,15 +198,22 @@
 
 <span class="sd">    This  can be also used with the single level defect class, but here we are just showing the multi level defect</span>
 
-<span class="sd">    &gt;&gt;&gt; s.defectlist = MultiLevelDefect(Ed=defect[&#39;Ed&#39;], sigma_e=defect[&#39;sigma_e&#39;], sigma_h=defect[&#39;sigma_h&#39;], Nd=defect[&#39;Nd&#39;], charge=defect[&#39;charge&#39;])</span>
-
+<span class="sd">    &gt;&gt;&gt; s.defectlist = MultiLevel(Ed=defect[&#39;Ed&#39;], sigma_e=defect[&#39;sigma_e&#39;], sigma_h=defect[&#39;sigma_h&#39;], Nd=defect[&#39;Nd&#39;], charge=defect[&#39;charge&#39;])</span>
 
 <span class="sd">    &gt;&gt;&gt; nxc = 1e13</span>
-<span class="sd">    &gt;&gt;&gt; gen,tau = steadyState(s, nxc, plot_carriers=False,   plot_lifetime=False)</span>
+<span class="sd">    &gt;&gt;&gt; gen,tau = steadyState_carriers(s, nxc, 1e16, 1e13, output=False)</span>
 <span class="sd">    &gt;&gt;&gt; print(&#39;gen = {0:.2e}cm^-3 \t tau = {1:.2e}s&#39;.format(gen[0], tau[0]))</span>
 <span class="sd">    gen = 5.06e+17cm^-3        tau = 1.97e-05s</span>
-<span class="sd">    &gt;&gt;&gt; plt.cla()</span>
+
 <span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nxc</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="n">nxc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nxc</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ne</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="n">ne</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ne</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nh</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="n">nh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nh</span><span class="p">])</span>
 
     <span class="n">qEfe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ne</span> <span class="o">/</span> <span class="n">s</span><span class="o">.</span><span class="n">ni</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span><span class="o">.</span><span class="n">Vt</span>
     <span class="n">qEfh</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nh</span> <span class="o">/</span> <span class="n">s</span><span class="o">.</span><span class="n">ni</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span><span class="o">.</span><span class="n">Vt</span>
@@ -258,6 +267,10 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 
+<span class="sd">    &gt;&gt;&gt; from defects.sample import Sample</span>
+<span class="sd">    &gt;&gt;&gt; from defects.defects import MultiLevel</span>
+<span class="sd">    &gt;&gt;&gt; from defects.solvers import steadyState_excesscarriers</span>
+
 <span class="sd">    define a defect</span>
 
 <span class="sd">    &gt;&gt;&gt; defect = dict(Ed=[0, -0.35], sigma_e=[3e-14, 1e-16], sigma_h=[3e-15, 1e-15], charge=[[0, -1], [0, 1]], Nd=1e12)</span>
@@ -272,11 +285,11 @@
 
 <span class="sd">    This  can be also used with the single level defect class, but here we are just showing the multi level defect</span>
 
-<span class="sd">    &gt;&gt;&gt; s.defectlist = MultiLevelDefect(Ed=defect[&#39;Ed&#39;], sigma_e=defect[&#39;sigma_e&#39;], sigma_h=defect[&#39;sigma_h&#39;], Nd=defect[&#39;Nd&#39;], charge=defect[&#39;charge&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; s.defectlist = MultiLevel(Ed=defect[&#39;Ed&#39;], sigma_e=defect[&#39;sigma_e&#39;], sigma_h=defect[&#39;sigma_h&#39;], Nd=defect[&#39;Nd&#39;], charge=defect[&#39;charge&#39;])</span>
 
 
 <span class="sd">    &gt;&gt;&gt; nxc = 1e13</span>
-<span class="sd">    &gt;&gt;&gt; gen,tau = steadyState(s, nxc, plot_carriers=False,   plot_lifetime=False)</span>
+<span class="sd">    &gt;&gt;&gt; gen,tau = steadyState_excesscarriers(s, nxc, plot_carriers=False,   plot_lifetime=False)</span>
 <span class="sd">    &gt;&gt;&gt; print(&#39;gen = {0:.2e}cm^-3 \t tau = {1:.2e}s&#39;.format(gen[0], tau[0]))</span>
 <span class="sd">    gen = 5.06e+17cm^-3        tau = 1.97e-05s</span>
 <span class="sd">    &gt;&gt;&gt; plt.cla()</span>
@@ -371,7 +384,7 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="c1"># put in it the simulation</span>
     <span class="c1"># s._defectlist = []</span>
-    <span class="c1"># s.defectlist = MultiLevelDefect(Ed=defect[&#39;Ed&#39;],</span>
+    <span class="c1"># s.defectlist = MultiLevel(Ed=defect[&#39;Ed&#39;],</span>
     <span class="c1">#                                 sigma_e=defect[&#39;sigma_e&#39;],</span>
     <span class="c1">#                                 sigma_h=defect[&#39;sigma_h&#39;],</span>
     <span class="c1">#                                 charge=defect[&#39;charge&#39;],</span>
