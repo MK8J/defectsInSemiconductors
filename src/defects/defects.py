@@ -217,7 +217,13 @@ class SingleLevel():
             qEfh = Ef
 
         Vt = C.k * temp / C.e
+        # ne1 = 1e10*np.exp(self.Ed / Vt)
+        # nh1 = 1e10*np.exp(-self.Ed / Vt)
+        # ne = 1e10 * np.exp(qEfe/Vt)
+        # nh = 1e10 * np.exp(-qEfh/Vt)
 
+        # print(ne1, nh1)
+        # print('inside thins',(k * ne1 +nh)/(k*ne + nh1))
         return (
             1 + k * np.exp((qEfe + self.Ed) / Vt)
         ) / (
@@ -437,6 +443,245 @@ class SingleLevel():
                 self.__sigma_e = np.array(value)
             else:
                 self.__sigma_e = value
+
+    def params(self):
+        return {'tau_hmin': self.tau_hmin,
+                'tau_emin': self.tau_emin,
+                'Ed': self.Ed,
+                'Nd': self.Nd,
+                }
+
+
+class SingleLevelWithAuger():
+    '''
+    This class represents a Evans and Landsberg defect with two states. This is also know as a single energy level.
+
+    A defect has the same properties as a SRH defect with aditional paramters to allow for local Auger processes. Some notation has also changed from the SRH defect, as now listed:
+        1. Te is the transition probabiliy of an electron into the defect.
+        2. Tee is the transition probabiliy of an electron into the defect, where its excess energy is given to a free electron
+        3. Teh is the transition probabiliy of an electron into the defect, where its excess energy is given to a free hole
+        4. Th is the transition probabiliy of an hole into the defect
+        5. The is the transition probabiliy of an hole into the defect, where its excess energy is given to a free electron
+        6. Teh is the transition probabiliy of an hole into the defect, where its excess energy is given to a free hole
+
+
+    The tau_emin and tau_hmin now dependend on the carrier densities, and so are not longer a property of this class, but a function.
+
+    This class can not be used with a transient solver, only with steady state recombiation.
+    '''
+
+    def __init__(self, Ed=None, Te=None, Th=None, Tee=None, Teh=None, The=None, Thh=None,  Nd=1e12, vth_h=1.69e7, vth_e=2.05e7, occupied_charge=-1, unoccupied_charge=0, **kwargs):
+        '''
+        Initalised the class
+        '''
+
+        # initiate the vairables
+        self.Nd = Nd
+        self.vth_h = vth_h
+        self.vth_e = vth_e
+
+        self.occupied_charge = occupied_charge
+        self.unoccupied_charge = unoccupied_charge
+
+        self.__Te = Te
+        self.__Th = Th
+
+        self.__Tee = Tee
+        self.__Teh = Teh
+        self.__The = The
+        self.__Thh = Thh
+
+        self.Ed = Ed
+
+        # set them form the values that were passed
+        self.__attrs(kwargs)
+
+    def __attrs(self, dic):
+        '''
+        sets the values in provided dictionary
+        '''
+        assert type(dic) == dict
+        for key, val in dic.items():
+            if hasattr(self, key):
+                setattr(self, key, val)
+
+    def net_charge(self, Ef, temp):
+        '''
+        returns the net charge of the defect for a given temperature and
+        energy level
+
+        inputs:
+            Ef: (float or list of 2 floats, eV)
+                The Fermi energy level or list of quasi fermi energy level.
+                If a list is provided it is assumed the electron quasi Fermi
+                energy level is first
+            temp: (float, kelvin)
+                temperature of the sample
+
+        Examples
+        We can see the change on a defect we now define. Note this is an unusual defect as it has a possible charges of +1 or -1. This is just used now as it makes the example simplier
+
+        '''
+        ncs = self.charge_state_concentration(Ef, temp)
+        charge = ncs[0] * self.unoccupied_charge + \
+            ncs[1] * self.occupied_charge
+
+        return(float(charge))
+
+    def charge_state_concentration(self, Ef, temp):
+        '''
+        Retruns the concentration of the the charge states for a defect for specific electron and hole fermy energy levels. The states are reported with the more "positive" levels first.
+
+
+        inputs:
+            Ef: (float or list of 2 floats, [Efe, Efh], eV)
+                The Fermi energy level or list of quasi fermi energy level.
+                If a list is provided it is assumed the electron quasi Fermi
+                energy level is first
+            temp: (float, kelvin)
+                temperature of the sample
+
+        '''
+
+        ratio = np.cumprod(np.append(1, self.occupation_ratio_SS(Ef, temp)))
+        return np.array(ratio / ratio.sum() * self.Nd)
+
+    def occupation_ratio_SS(self, Ef, temp):
+        '''
+        The occupation ratio of the negitive to positive defect charge state
+
+
+        inputs:
+            Ef: (float or list of 2 floats, eV)
+                The Fermi energy level or list of quasi fermi energy level.
+                If a list is provided it is assumed the electron quasi Fermi
+                energy level is first
+            temp: (float, kelvin)
+                temperature of the sample
+
+        '''
+
+        if type(Ef) is list and len(Ef) == 2:
+            qEfe = Ef[0]
+            qEfh = Ef[1]
+        else:
+            qEfe = Ef
+            qEfh = Ef
+
+        ne = ni * np.exp(qEfe * C.e / C.k / temp)
+        nh = ni * np.exp(-qEfh * C.e / C.k / temp)
+
+        k = self.tau_emin(ne, nh) / self.tau_hmin(ne, nh)
+
+        Vt = C.k * temp / C.e
+
+        return (
+            1 + k * np.exp((qEfe + self.Ed) / Vt)
+        ) / (
+            k + np.exp((-qEfh - self.Ed) / Vt)
+        ) * np.exp(-2 * self.Ed / Vt)
+#
+
+    def recombination_SS(self, qEfe, qEfh, temp, ni):
+        '''
+        This calculates the recombiation occuring through a defect in steady state.
+
+        inputs:
+            qEfe: (float eV)
+                The quasi Fermi energy level of electons
+            qEfh: (float eV)
+                The quasi Fermi energy level of holes
+
+            temp: (float, kelvin)
+                temperature of the sample
+            ni: (float, cm^-3)
+                the intrinsic carrier density
+
+
+        This uses the Evans and Landsberg formalisation, 10.1016/0038-1101(63)90012-1
+
+        '''
+        if not isinstance(qEfe, np.ndarray):
+            qEfe = np.array([qEfe])
+        if not isinstance(qEfh, np.ndarray):
+            qEfh = np.array([qEfh])
+
+        ne = ni * np.exp(qEfe * C.e / C.k / temp)
+        nh = ni * np.exp(-qEfh * C.e / C.k / temp)
+
+        ne1 = ni * np.exp(self.Ed * C.e / C.k / temp)
+        nh1 = ni * np.exp(-self.Ed * C.e / C.k / temp)
+
+        _ne = np.zeros((ne.shape[0])) + ne
+        _nh = np.zeros((nh.shape[0])) + nh
+        _ni = np.zeros((nh.shape[0])) + ni
+
+        # SRH recombiation
+        U = (_ne * _nh - ni**2) / (
+            (_nh + nh1) * self.tau_emin(_ne, _nh) +
+            (_ne + ne1) * self.tau_hmin(_ne, _nh)
+        )
+
+        # suming over all the defect state recombiation
+        if U.shape[0] == 1:
+            U = U[0]
+
+        return U
+
+    def tau_emin(self, ne, nh):
+        '''
+        The electron lifetime if all the defect states are available
+        '''
+        val = 1. / (self.__Te + ne * self.__Tee + nh *
+                    self.__Teh
+                    ) / self.vth_e / self.Nd
+
+        return val
+
+    def tau_hmin(self, ne, nh):
+        '''
+        The hole lifetime if all the defect states are available
+        '''
+
+        val = 1. / (self.__Th + ne * self.__The + nh *
+                    self.__Thh
+                    ) / self.vth_h / self.Nd
+
+        return val
+
+    @property
+    def Th(self):
+        if self.__Th is None:
+            val = 1. / self.__tau_hmin / self.vth_h / self.Nd
+        else:
+            val = self.__Th
+        return val
+
+    @Th.setter
+    def Th(self, value):
+        if value is not None:
+            self.__tau_hmin = None
+            if type(value) == list:
+                self.__Th = np.array(value)
+            else:
+                self.__Th = value
+
+    @property
+    def Te(self):
+        if self.__sigma_h is None:
+            val = 1. / self.__tau_emin / self.vth_e / self.Nd
+        else:
+            val = self.__Te
+        return val
+
+    @Te.setter
+    def Te(self, value):
+        if value is not None:
+            self.__tau_emin = None
+            if type(value) == list:
+                self.__Te = np.array(value)
+            else:
+                self.__Te = value
 
     def params(self):
         return {'tau_hmin': self.tau_hmin,

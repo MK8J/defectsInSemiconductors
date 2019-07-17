@@ -120,18 +120,18 @@ def transient_decay(s, nxc, t_stepf=500, t_stepNo=1000, auto=True, nxc_min=1e8, 
 
 def steadyState_carriers(s, nxc, ne, nh,  output=None):
     '''
-    Calculate the steady state lifetime of a sample for the number of carriers.
+    Calculate the steady state lifetime of a sample for the provide of carrier concentration. This is much faster than steadyState_excesscarriers as it does not ensure charge neutrality.
 
     Parameters
     ----------
     s : (class)
         the sample class
     nxc : (array like)
-        The excess carrier density to be evaluated
-    plot_carriers : (bool default  True)
-        determines if the function automatically plots the carriers with time
-    plot_lifetime : (bool default  True)
-        determines if the function automatically plots the lifetime as a function of excess carriers
+        The excess carrier density at which the recombiation is to be evaluated
+    ne : (array like)
+        The electron density at which the recombiation is to be evaluated
+    nh : (array like)
+        The hole density at which the recombiation is to be evaluated
     output : (bool default False)
         determines the output. If True provides the carrier densities as well
 
@@ -194,9 +194,9 @@ def steadyState_carriers(s, nxc, ne, nh,  output=None):
         return rec, nxc / rec
 
 
-def steadyState_excesscarriers(s, nxc, plot_carriers=True,   plot_lifetime=True, output=None):
+def steadyState_excesscarriers(s, nxc, plot_carriers=True,  plot_lifetime=True, output=None):
     '''
-    Calculates the steady state lifetime of a sample, give a specific defect given the number of excess carriers.
+    Calculates the steady state lifetime of a sample, give a specific defect given the concentration of excess carriers. This ensures at each step that neutrality is ensured.
 
     Parameters
     ----------
@@ -301,13 +301,6 @@ def steadyState_excesscarriers(s, nxc, plot_carriers=True,   plot_lifetime=True,
         return rec, nxc / rec, ne, nh, nd
     else:
         return rec, nxc / rec
-
-    # plt.loglog()
-
-    # plt.ylim(0.5e-6)
-
-    # plt.plot(ne - ne0, nd[:, 0])
-    # plt.semilogy()
 
 
 def squareWavePulse(s, t_stepf=500, t_stepNo=1000, Gss=1e20, plot_carriers=True,   plot_lifetime=True):
