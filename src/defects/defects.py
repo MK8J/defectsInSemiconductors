@@ -362,6 +362,11 @@ class SingleLevel():
             the concentration of free hole
         nde :
             the concentration of electron in the defect
+
+        Returns
+        -------
+        ch : array like
+            the capture rate of holes
         '''
         # note that the division by Nd removes its impact
         return nh * nde / self.tau_hmin / self.Nd
