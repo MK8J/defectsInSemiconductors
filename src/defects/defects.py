@@ -180,8 +180,8 @@ class SingleLevel():
             temperature of the sample
 
 
-        Example
-        -------
+        Examples
+        --------
 
         When Ef = Ed the occupation ratio should be 1, i.e. the defects occupy the same number
 
