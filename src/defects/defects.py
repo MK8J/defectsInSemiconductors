@@ -125,12 +125,12 @@ class SingleLevel():
 
         Parameters
         ----------
-            Ef : (float or list of 2 floats, [Efe, Efh], eV)
-                The Fermi energy level or list of quasi fermi energy level.
-                If a list is provided it is assumed the electron quasi Fermi
-                energy level is first
-            temp : (float, kelvin)
-                temperature of the sample
+        Ef : (float or list of 2 floats, [Efe, Efh], eV)
+            The Fermi energy level or list of quasi fermi energy level.
+            If a list is provided it is assumed the electron quasi Fermi
+            energy level is first
+        temp : (float, kelvin)
+            temperature of the sample
 
         Examples
         --------
