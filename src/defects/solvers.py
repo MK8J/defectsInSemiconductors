@@ -145,8 +145,6 @@ def steadyState_carriers(s, nxc, ne, nh,  output=None):
         the number of free electrons
     nh : (numpy array, in cm^-3, optional)
         the number of free holes
-    nd : (numpy array, in cm^-3, optional)
-        the number of defect states
 
     Examples
     --------
@@ -157,6 +155,10 @@ def steadyState_carriers(s, nxc, ne, nh,  output=None):
 
     define the sample properties
 
+    >>> from defects.sample import Sample
+    >>> from defects.defects import MultiLevel
+    >>> from defects.solvers import steadyState_carriers
+
     >>> s = Sample()
     >>> s.tau_rad = 1 # a constant bulk lifetime in seconds
     >>> s.Nacc = 0 # number acceptors in cm^-3
@@ -165,15 +167,22 @@ def steadyState_carriers(s, nxc, ne, nh,  output=None):
 
     This  can be also used with the single level defect class, but here we are just showing the multi level defect
 
-    >>> s.defectlist = MultiLevelDefect(Ed=defect['Ed'], sigma_e=defect['sigma_e'], sigma_h=defect['sigma_h'], Nd=defect['Nd'], charge=defect['charge'])
-
+    >>> s.defectlist = MultiLevel(Ed=defect['Ed'], sigma_e=defect['sigma_e'], sigma_h=defect['sigma_h'], Nd=defect['Nd'], charge=defect['charge'])
 
     >>> nxc = 1e13
-    >>> gen,tau = steadyState(s, nxc, plot_carriers=False,   plot_lifetime=False)
+    >>> gen,tau = steadyState_carriers(s, nxc, 1e16, 1e13, output=False)
     >>> print('gen = {0:.2e}cm^-3 \t tau = {1:.2e}s'.format(gen[0], tau[0]))
     gen = 5.06e+17cm^-3        tau = 1.97e-05s
-    >>> plt.cla()
+
     '''
+    if isinstance(nxc, float):
+        nxc = np.array([nxc])
+
+    if isinstance(ne, float):
+        ne = np.array([ne])
+
+    if isinstance(nh, float):
+        nh = np.array([nh])
 
     qEfe = np.log(ne / s.ni) * s.Vt
     qEfh = -np.log(nh / s.ni) * s.Vt
@@ -227,6 +236,10 @@ def steadyState_excesscarriers(s, nxc, plot_carriers=True,  plot_lifetime=True, 
     Examples
     --------
 
+    >>> from defects.sample import Sample
+    >>> from defects.defects import MultiLevel
+    >>> from defects.solvers import steadyState_excesscarriers
+
     define a defect
 
     >>> defect = dict(Ed=[0, -0.35], sigma_e=[3e-14, 1e-16], sigma_h=[3e-15, 1e-15], charge=[[0, -1], [0, 1]], Nd=1e12)
@@ -241,11 +254,11 @@ def steadyState_excesscarriers(s, nxc, plot_carriers=True,  plot_lifetime=True, 
 
     This  can be also used with the single level defect class, but here we are just showing the multi level defect
 
-    >>> s.defectlist = MultiLevelDefect(Ed=defect['Ed'], sigma_e=defect['sigma_e'], sigma_h=defect['sigma_h'], Nd=defect['Nd'], charge=defect['charge'])
+    >>> s.defectlist = MultiLevel(Ed=defect['Ed'], sigma_e=defect['sigma_e'], sigma_h=defect['sigma_h'], Nd=defect['Nd'], charge=defect['charge'])
 
 
     >>> nxc = 1e13
-    >>> gen,tau = steadyState(s, nxc, plot_carriers=False,   plot_lifetime=False)
+    >>> gen,tau = steadyState_excesscarriers(s, nxc, plot_carriers=False,   plot_lifetime=False)
     >>> print('gen = {0:.2e}cm^-3 \t tau = {1:.2e}s'.format(gen[0], tau[0]))
     gen = 5.06e+17cm^-3        tau = 1.97e-05s
     >>> plt.cla()
@@ -340,7 +353,7 @@ def squareWavePulse(s, t_stepf=500, t_stepNo=1000, Gss=1e20, plot_carriers=True,
     '''
     # put in it the simulation
     # s._defectlist = []
-    # s.defectlist = MultiLevelDefect(Ed=defect['Ed'],
+    # s.defectlist = MultiLevel(Ed=defect['Ed'],
     #                                 sigma_e=defect['sigma_e'],
     #                                 sigma_h=defect['sigma_h'],
     #                                 charge=defect['charge'],

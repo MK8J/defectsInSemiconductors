@@ -522,16 +522,22 @@ class SingleLevelWithAuger():
         returns the net charge of the defect for a given temperature and
         energy level
 
-        inputs:
-            Ef: (float or list of 2 floats, eV)
-                The Fermi energy level or list of quasi fermi energy level.
-                If a list is provided it is assumed the electron quasi Fermi
-                energy level is first
-            temp: (float, kelvin)
-                temperature of the sample
+        Parameters
+        ----------
+        Ef : (float or list of 2 floats, eV)
+            The Fermi energy level or list of quasi fermi energy level.
+            If a list is provided it is assumed the electron quasi Fermi
+            energy level is first
+        temp : (float, kelvin)
+            temperature of the sample
 
         Examples
+        --------
+
         We can see the change on a defect we now define. Note this is an unusual defect as it has a possible charges of +1 or -1. This is just used now as it makes the example simplier
+
+        As a function of the Fermi energy level. It should be negative
+        the higher the fermi energy level
 
         '''
         ncs = self.charge_state_concentration(Ef, temp)
@@ -545,13 +551,14 @@ class SingleLevelWithAuger():
         Retruns the concentration of the the charge states for a defect for specific electron and hole fermy energy levels. The states are reported with the more "positive" levels first.
 
 
-        inputs:
-            Ef: (float or list of 2 floats, [Efe, Efh], eV)
-                The Fermi energy level or list of quasi fermi energy level.
-                If a list is provided it is assumed the electron quasi Fermi
-                energy level is first
-            temp: (float, kelvin)
-                temperature of the sample
+        Parameters
+        ----------
+        Ef : (float or list of 2 floats, [Efe, Efh], eV)
+            The Fermi energy level or list of quasi fermi energy level.
+            If a list is provided it is assumed the electron quasi Fermi
+            energy level is first
+        temp : (float, kelvin)
+            temperature of the sample
 
         '''
 
@@ -561,15 +568,18 @@ class SingleLevelWithAuger():
     def occupation_ratio_SS(self, Ef, temp):
         '''
         The occupation ratio of the negitive to positive defect charge state
+        This works for the general case and is the same as in Sah and Shockley 1958 paper.
 
+        This is equilivant to inver alpha from DOI: 10.1063/1.4906465... well its very similar. But this is correct.
 
-        inputs:
-            Ef: (float or list of 2 floats, eV)
-                The Fermi energy level or list of quasi fermi energy level.
-                If a list is provided it is assumed the electron quasi Fermi
-                energy level is first
-            temp: (float, kelvin)
-                temperature of the sample
+        Parameters
+        ----------
+        Ef : (float or list of 2 floats, eV)
+            The Fermi energy level or list of quasi fermi energy level.
+            If a list is provided it is assumed the electron quasi Fermi
+            energy level is first
+        temp : (float, kelvin)
+            temperature of the sample
 
         '''
 
@@ -598,19 +608,40 @@ class SingleLevelWithAuger():
         '''
         This calculates the recombiation occuring through a defect in steady state.
 
-        inputs:
-            qEfe: (float eV)
-                The quasi Fermi energy level of electons
-            qEfh: (float eV)
-                The quasi Fermi energy level of holes
+        Parameters
+        ----------
+        qEfe : (float eV)
+            The quasi Fermi energy level of electons
+        qEfh : (float eV)
+            The quasi Fermi energy level of holes
 
-            temp: (float, kelvin)
-                temperature of the sample
-            ni: (float, cm^-3)
-                the intrinsic carrier density
+        temp : (float, kelvin)
+            temperature of the sample
+        ni : (float, cm^-3)
+            the intrinsic carrier density
 
 
-        This uses the Evans and Landsberg formalisation, 10.1016/0038-1101(63)90012-1
+        Notes
+        -----
+
+        The emission and capture rates are different to  a shockley read hall defect. This uses the Evans and Landsberg formalisation, 10.1016/0038-1101(63)90012-1. Te and Th are equilivant to sigma_e and sigma_h.
+
+        Examples
+        --------
+        This gives the same value as a single level as a single level
+        >>> s = SingleLevelWithAuger(Ed=0.2, Te=1e-14, Th=1e-14, Tee=0, Teh=0, The=0, Thh=0, Nd = 1e12)
+        >>> s1 = SingleLevel(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)
+        >>> print('{0:.2e}'.format(s.recombination_SS(0.3,-0.3, 300, 1e10)))
+        1.00e+20
+        >>> print('{0:.2e}'.format(s1.recombination_SS(0.3,-0.3, 300, 1e10)))
+        1.00e+20
+
+        Or a list of fermi energy levels
+
+        If we reduce the capture cross sections we get less recombiation
+        >>> s = SingleLevelWithAuger(Ed=0, Te=1e-15, Th=1e-15, Tee=0, Teh=0, The=0, Thh=0, Nd = 1e12)
+        >>> print(s.recombination_SS([0.3,0],[0,-0.3], 300, 1e10))
+        [1.68994373e+14 2.04991721e+14]
 
         '''
         if not isinstance(qEfe, np.ndarray):
@@ -642,7 +673,15 @@ class SingleLevelWithAuger():
 
     def tau_emin(self, ne, nh):
         '''
-        The electron lifetime if all the defect states are available
+        This calculates the electron lifetime if all the defect states are available
+
+        Parameters
+        ----------
+        ne : (float cm^-3)
+            The electron carrier density
+        nh : (float cm^-3)
+            The hole carrier density
+
         '''
         val = 1. / (self.__Te + ne * self.__Tee + nh *
                     self.__Teh
@@ -653,6 +692,13 @@ class SingleLevelWithAuger():
     def tau_hmin(self, ne, nh):
         '''
         The hole lifetime if all the defect states are available
+
+        Parameters
+        ----------
+        ne : (float cm^-3)
+            The electron carrier density
+        nh : (float cm^-3)
+            The hole carrier density
         '''
 
         val = 1. / (self.__Th + ne * self.__The + nh *
@@ -663,44 +709,21 @@ class SingleLevelWithAuger():
 
     @property
     def Th(self):
-        if self.__Th is None:
-            val = 1. / self.__tau_hmin / self.vth_h / self.Nd
-        else:
-            val = self.__Th
+        val = self.__Th
         return val
 
     @Th.setter
     def Th(self, value):
-        if value is not None:
-            self.__tau_hmin = None
-            if type(value) == list:
-                self.__Th = np.array(value)
-            else:
-                self.__Th = value
+        self.__Th = value
 
     @property
     def Te(self):
-        if self.__sigma_h is None:
-            val = 1. / self.__tau_emin / self.vth_e / self.Nd
-        else:
-            val = self.__Te
+        val = self.__Te
         return val
 
     @Te.setter
     def Te(self, value):
-        if value is not None:
-            self.__tau_emin = None
-            if type(value) == list:
-                self.__Te = np.array(value)
-            else:
-                self.__Te = value
-
-    def params(self):
-        return {'tau_hmin': self.tau_hmin,
-                'tau_emin': self.tau_emin,
-                'Ed': self.Ed,
-                'Nd': self.Nd,
-                }
+        self.__Te = value
 
 
 class MultiLevel(SingleLevel):
@@ -743,7 +766,6 @@ class MultiLevel(SingleLevel):
             self.charge = charge
             index = [0]
 
-        print(index)
         # initalise the class using the index from the charge of the defect.
         super().__init__(sigma_e=np.array(sigma_e)[index], sigma_h=np.array(
             sigma_h)[index], Ed=np.array(Ed)[index], Nd=Nd)
