@@ -4,11 +4,10 @@ primerize.egg-info/
 *.py~
 *.un~
 *.ipynb
-build/**
 docs/.doc*
-docs/buil*
+build/*
 *.bat
 mac*
 test*
 *.pkl
-docs/*
+docs/source/*
