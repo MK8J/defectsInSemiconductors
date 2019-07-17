@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>defects.sample &#8212; simulation of defects in semiconductor 0.2 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -85,7 +83,7 @@
 <span class="sd">    One of the problems is that there is a lot of properties so this is a very</span>
 <span class="sd">    large class</span>
 
-<span class="sd">        ni, vth_e, vth_h are all calculated values from theoretical models unless a value is provided.</span>
+<span class="sd">        ni, vth_e, vth_h are all calculated values from theoretical models unless a value is provided. In that case the value is used. This is also a method to speed up calculations. Passing a value of None can then be used to reset these calculations.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -112,6 +110,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">tau_rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__attrs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">equlibrium_concentrations</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">__attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dic</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
@@ -269,7 +269,10 @@
         <span class="p">)</span>
 
         <span class="n">val</span> <span class="o">=</span> <span class="n">getvalue_modelornumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_h</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="s1">&#39;update&#39;</span><span class="p">,</span>
-                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_h</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_h</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defectlist</span><span class="p">:</span>
             <span class="n">i</span><span class="o">.</span><span class="n">vth_h</span> <span class="o">=</span> <span class="n">val</span>
@@ -292,7 +295,10 @@
         <span class="p">)</span>
 
         <span class="n">val</span> <span class="o">=</span> <span class="n">getvalue_modelornumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_e</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="s1">&#39;update&#39;</span><span class="p">,</span>
-                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_e</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -371,7 +377,9 @@
                 <span class="n">ne0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">majoirty_carrier</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
                 <span class="n">nh0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ni</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">majoirty_carrier</span><span class="p">,</span>
                                <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ne0</span> <span class="o">=</span> <span class="n">ni</span>
+                <span class="n">nh0</span> <span class="o">=</span> <span class="n">ni</span>
             <span class="k">return</span> <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span>
 
         <span class="k">def</span> <span class="nf">possion</span><span class="p">(</span><span class="n">majoirty_carrier</span><span class="p">):</span>
@@ -399,7 +407,7 @@
 
 <div class="viewcode-block" id="Sample.steady_state_concentraions"><a class="viewcode-back" href="../../sample/sample.html#defects.sample.Sample.steady_state_concentraions">[docs]</a>    <span class="k">def</span> <span class="nf">steady_state_concentraions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nxc</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Calculate the steady state concentration of carriers,</span>
+<span class="sd">        Calculats the steady state concentration of carriers,</span>
 <span class="sd">        provided the number of excess minoirty carriers by peturbing the number of excess majority carriers.</span>
 
 <span class="sd">        This assumes a constant intrinsic carrier density.</span>
@@ -411,10 +419,12 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        ne0 : float</span>
+<span class="sd">        ne: float</span>
 <span class="sd">            the free electron concentration</span>
-<span class="sd">        nh0 : float</span>
+<span class="sd">        nh: float</span>
 <span class="sd">            the free hole concentration</span>
+<span class="sd">        nd: array like</span>
+<span class="sd">            the number of defects in each state</span>
 
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">def</span> <span class="nf">charges</span><span class="p">(</span><span class="n">mj</span><span class="p">):</span>
@@ -531,13 +541,11 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -550,7 +558,7 @@
       &copy;2019, Mattias Klaus Juhl.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>
