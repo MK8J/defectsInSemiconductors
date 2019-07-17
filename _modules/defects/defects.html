@@ -553,16 +553,22 @@
 <span class="sd">        returns the net charge of the defect for a given temperature and</span>
 <span class="sd">        energy level</span>
 
-<span class="sd">        inputs:</span>
-<span class="sd">            Ef: (float or list of 2 floats, eV)</span>
-<span class="sd">                The Fermi energy level or list of quasi fermi energy level.</span>
-<span class="sd">                If a list is provided it is assumed the electron quasi Fermi</span>
-<span class="sd">                energy level is first</span>
-<span class="sd">            temp: (float, kelvin)</span>
-<span class="sd">                temperature of the sample</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Ef : (float or list of 2 floats, eV)</span>
+<span class="sd">            The Fermi energy level or list of quasi fermi energy level.</span>
+<span class="sd">            If a list is provided it is assumed the electron quasi Fermi</span>
+<span class="sd">            energy level is first</span>
+<span class="sd">        temp : (float, kelvin)</span>
+<span class="sd">            temperature of the sample</span>
 
 <span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
 <span class="sd">        We can see the change on a defect we now define. Note this is an unusual defect as it has a possible charges of +1 or -1. This is just used now as it makes the example simplier</span>
+
+<span class="sd">        As a function of the Fermi energy level. It should be negative</span>
+<span class="sd">        the higher the fermi energy level</span>
 
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ncs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge_state_concentration</span><span class="p">(</span><span class="n">Ef</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
@@ -576,13 +582,14 @@
 <span class="sd">        Retruns the concentration of the the charge states for a defect for specific electron and hole fermy energy levels. The states are reported with the more &quot;positive&quot; levels first.</span>
 
 
-<span class="sd">        inputs:</span>
-<span class="sd">            Ef: (float or list of 2 floats, [Efe, Efh], eV)</span>
-<span class="sd">                The Fermi energy level or list of quasi fermi energy level.</span>
-<span class="sd">                If a list is provided it is assumed the electron quasi Fermi</span>
-<span class="sd">                energy level is first</span>
-<span class="sd">            temp: (float, kelvin)</span>
-<span class="sd">                temperature of the sample</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Ef : (float or list of 2 floats, [Efe, Efh], eV)</span>
+<span class="sd">            The Fermi energy level or list of quasi fermi energy level.</span>
+<span class="sd">            If a list is provided it is assumed the electron quasi Fermi</span>
+<span class="sd">            energy level is first</span>
+<span class="sd">        temp : (float, kelvin)</span>
+<span class="sd">            temperature of the sample</span>
 
 <span class="sd">        &#39;&#39;&#39;</span>
 
@@ -592,15 +599,18 @@
 <div class="viewcode-block" id="SingleLevelWithAuger.occupation_ratio_SS"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.SingleLevelWithAuger.occupation_ratio_SS">[docs]</a>    <span class="k">def</span> <span class="nf">occupation_ratio_SS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ef</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        The occupation ratio of the negitive to positive defect charge state</span>
+<span class="sd">        This works for the general case and is the same as in Sah and Shockley 1958 paper.</span>
 
+<span class="sd">        This is equilivant to inver alpha from DOI: 10.1063/1.4906465... well its very similar. But this is correct.</span>
 
-<span class="sd">        inputs:</span>
-<span class="sd">            Ef: (float or list of 2 floats, eV)</span>
-<span class="sd">                The Fermi energy level or list of quasi fermi energy level.</span>
-<span class="sd">                If a list is provided it is assumed the electron quasi Fermi</span>
-<span class="sd">                energy level is first</span>
-<span class="sd">            temp: (float, kelvin)</span>
-<span class="sd">                temperature of the sample</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Ef : (float or list of 2 floats, eV)</span>
+<span class="sd">            The Fermi energy level or list of quasi fermi energy level.</span>
+<span class="sd">            If a list is provided it is assumed the electron quasi Fermi</span>
+<span class="sd">            energy level is first</span>
+<span class="sd">        temp : (float, kelvin)</span>
+<span class="sd">            temperature of the sample</span>
 
 <span class="sd">        &#39;&#39;&#39;</span>
 
@@ -629,19 +639,40 @@
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        This calculates the recombiation occuring through a defect in steady state.</span>
 
-<span class="sd">        inputs:</span>
-<span class="sd">            qEfe: (float eV)</span>
-<span class="sd">                The quasi Fermi energy level of electons</span>
-<span class="sd">            qEfh: (float eV)</span>
-<span class="sd">                The quasi Fermi energy level of holes</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        qEfe : (float eV)</span>
+<span class="sd">            The quasi Fermi energy level of electons</span>
+<span class="sd">        qEfh : (float eV)</span>
+<span class="sd">            The quasi Fermi energy level of holes</span>
 
-<span class="sd">            temp: (float, kelvin)</span>
-<span class="sd">                temperature of the sample</span>
-<span class="sd">            ni: (float, cm^-3)</span>
-<span class="sd">                the intrinsic carrier density</span>
+<span class="sd">        temp : (float, kelvin)</span>
+<span class="sd">            temperature of the sample</span>
+<span class="sd">        ni : (float, cm^-3)</span>
+<span class="sd">            the intrinsic carrier density</span>
 
 
-<span class="sd">        This uses the Evans and Landsberg formalisation, 10.1016/0038-1101(63)90012-1</span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+
+<span class="sd">        The emission and capture rates are different to  a shockley read hall defect. This uses the Evans and Landsberg formalisation, 10.1016/0038-1101(63)90012-1. Te and Th are equilivant to sigma_e and sigma_h.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        This gives the same value as a single level as a single level</span>
+<span class="sd">        &gt;&gt;&gt; s = SingleLevelWithAuger(Ed=0.2, Te=1e-14, Th=1e-14, Tee=0, Teh=0, The=0, Thh=0, Nd = 1e12)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = SingleLevel(Ed=0.2, sigma_e=1e-14, sigma_h=1e-14, Nd = 1e12)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;{0:.2e}&#39;.format(s.recombination_SS(0.3,-0.3, 300, 1e10)))</span>
+<span class="sd">        1.00e+20</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;{0:.2e}&#39;.format(s1.recombination_SS(0.3,-0.3, 300, 1e10)))</span>
+<span class="sd">        1.00e+20</span>
+
+<span class="sd">        Or a list of fermi energy levels</span>
+
+<span class="sd">        If we reduce the capture cross sections we get less recombiation</span>
+<span class="sd">        &gt;&gt;&gt; s = SingleLevelWithAuger(Ed=0, Te=1e-15, Th=1e-15, Tee=0, Teh=0, The=0, Thh=0, Nd = 1e12)</span>
+<span class="sd">        &gt;&gt;&gt; print(s.recombination_SS([0.3,0],[0,-0.3], 300, 1e10))</span>
+<span class="sd">        [1.68994373e+14 2.04991721e+14]</span>
 
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qEfe</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
@@ -673,7 +704,15 @@
 
 <div class="viewcode-block" id="SingleLevelWithAuger.tau_emin"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.SingleLevelWithAuger.tau_emin">[docs]</a>    <span class="k">def</span> <span class="nf">tau_emin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        The electron lifetime if all the defect states are available</span>
+<span class="sd">        This calculates the electron lifetime if all the defect states are available</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ne : (float cm^-3)</span>
+<span class="sd">            The electron carrier density</span>
+<span class="sd">        nh : (float cm^-3)</span>
+<span class="sd">            The hole carrier density</span>
+
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">val</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__Te</span> <span class="o">+</span> <span class="n">ne</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Tee</span> <span class="o">+</span> <span class="n">nh</span> <span class="o">*</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">__Teh</span>
@@ -684,6 +723,13 @@
 <div class="viewcode-block" id="SingleLevelWithAuger.tau_hmin"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.SingleLevelWithAuger.tau_hmin">[docs]</a>    <span class="k">def</span> <span class="nf">tau_hmin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        The hole lifetime if all the defect states are available</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ne : (float cm^-3)</span>
+<span class="sd">            The electron carrier density</span>
+<span class="sd">        nh : (float cm^-3)</span>
+<span class="sd">            The hole carrier density</span>
 <span class="sd">        &#39;&#39;&#39;</span>
 
         <span class="n">val</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__Th</span> <span class="o">+</span> <span class="n">ne</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">__The</span> <span class="o">+</span> <span class="n">nh</span> <span class="o">*</span>
@@ -694,44 +740,21 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Th</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Th</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tau_hmin</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_h</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Th</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Th</span>
         <span class="k">return</span> <span class="n">val</span>
 
     <span class="nd">@Th</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">Th</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__tau_hmin</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__Th</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__Th</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__Th</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Te</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sigma_h</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tau_emin</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">vth_e</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Te</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Te</span>
         <span class="k">return</span> <span class="n">val</span>
 
     <span class="nd">@Te</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">Te</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__tau_emin</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__Te</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__Te</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;tau_hmin&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_hmin</span><span class="p">,</span>
-                <span class="s1">&#39;tau_emin&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_emin</span><span class="p">,</span>
-                <span class="s1">&#39;Ed&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ed</span><span class="p">,</span>
-                <span class="s1">&#39;Nd&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nd</span><span class="p">,</span>
-                <span class="p">}</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__Te</span> <span class="o">=</span> <span class="n">value</span></div>
 
 
 <div class="viewcode-block" id="MultiLevel"><a class="viewcode-back" href="../../defects/defects.html#defects.defects.MultiLevel">[docs]</a><span class="k">class</span> <span class="nc">MultiLevel</span><span class="p">(</span><span class="n">SingleLevel</span><span class="p">):</span>
@@ -774,7 +797,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">charge</span> <span class="o">=</span> <span class="n">charge</span>
             <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
         <span class="c1"># initalise the class using the index from the charge of the defect.</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sigma_e</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sigma_e</span><span class="p">)[</span><span class="n">index</span><span class="p">],</span> <span class="n">sigma_h</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
             <span class="n">sigma_h</span><span class="p">)[</span><span class="n">index</span><span class="p">],</span> <span class="n">Ed</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Ed</span><span class="p">)[</span><span class="n">index</span><span class="p">],</span> <span class="n">Nd</span><span class="o">=</span><span class="n">Nd</span><span class="p">)</span>
