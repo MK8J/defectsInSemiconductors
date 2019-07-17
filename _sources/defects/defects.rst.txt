@@ -2,10 +2,11 @@
 
 Defect Types
 ==============
-There are two types of defects:
+There are three types of defects:
 
   1. A single level defect, being a Shockley Read-Hall defect
   2. A multi level defect being a Sah and Shockley defect.
+  3. A single level defect, being that includes auger recombiation.
 
 These are outlined in detail below.
 The difference is how many energy level or "charge states" a defect has. A Sah and Shockley defect allows more than two different charge states, which is more than one energy level. It seems that most defects are actually multi level defects.
@@ -13,9 +14,10 @@ The difference is how many energy level or "charge states" a defect has. A Sah a
 .. autoclass:: defects.defects.SingleLevel
   :members:
 
-
 .. autoclass:: defects.defects.MultiLevel
     :members:
 
+.. autoclass:: defects.defects.SingleLevelWithAuger
+    :members:
 
 .. |cm-3| replace:: cm\ `-3`:sup:

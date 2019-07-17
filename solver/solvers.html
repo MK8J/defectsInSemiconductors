@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Solvers &#8212; simulation of defects in semiconductor 0.2 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -35,93 +33,137 @@
 <p>This module contains function that take both that enables steady state and time resolved solutions of the carrier, and defect concentration with time.</p>
 <span class="target" id="module-defects.solvers"></span><dl class="function">
 <dt id="defects.solvers.squareWavePulse">
-<code class="descclassname">defects.solvers.</code><code class="descname">squareWavePulse</code><span class="sig-paren">(</span><em>s</em>, <em>t_stepf=500</em>, <em>t_stepNo=1000</em>, <em>Gss=1e+20</em>, <em>plot_carriers=True</em>, <em>plot_lifetime=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#squareWavePulse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.squareWavePulse" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">defects.solvers.</code><code class="sig-name descname">squareWavePulse</code><span class="sig-paren">(</span><em class="sig-param">s</em>, <em class="sig-param">t_stepf=500</em>, <em class="sig-param">t_stepNo=1000</em>, <em class="sig-param">Gss=1e+20</em>, <em class="sig-param">plot_carriers=True</em>, <em class="sig-param">plot_lifetime=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#squareWavePulse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.squareWavePulse" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is a function to determine what happens to a semiconductors in 0D when
 illumination with a square wave of light.
 This runs a square wave pulse, cals the components and cals lifeimte</p>
 <p>This is basiccally a wrapper around trans_multilevel(), to make this specific simulations easier.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>s</strong> <span class="classifier-delimiter">:</span> <span class="classifier">class</span></dt>
-<dd><p class="first last">the sample class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>s</strong><span class="classifier">class</span></dt><dd><p>the sample class</p>
 </dd>
-<dt><strong>t_stepf</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(float, defualt 500, uniltess)</span></dt>
-<dd><p class="first last">The time step taking in ht numerical simulations. It is the ratio to the minoirty carrier Lifetime</p>
+<dt><strong>t_stepf</strong><span class="classifier">(float, defualt 500, uniltess)</span></dt><dd><p>The time step taking in ht numerical simulations. It is the ratio to the minoirty carrier Lifetime</p>
 </dd>
-<dt><strong>t_stepNo</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(float, default=1000, unitless)</span></dt>
-<dd><p class="first last">The number of time steps taken</p>
+<dt><strong>t_stepNo</strong><span class="classifier">(float, default=1000, unitless)</span></dt><dd><p>The number of time steps taken</p>
 </dd>
-<dt><strong>Gss</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(float, defualy=1e20, photons)</span></dt>
-<dd><p class="first last">the illumination intensity.</p>
+<dt><strong>Gss</strong><span class="classifier">(float, defualy=1e20, photons)</span></dt><dd><p>the illumination intensity.</p>
 </dd>
-<dt><strong>plot_carriers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(bool, default=True)</span></dt>
-<dd><p class="first last">creats a plot of the carriers with time</p>
+<dt><strong>plot_carriers</strong><span class="classifier">(bool, default=True)</span></dt><dd><p>creats a plot of the carriers with time</p>
 </dd>
-<dt><strong>plot_lifeimte</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(bool, default=True)</span></dt>
-<dd><p class="first last">creates a plot of lifetime</p>
+<dt><strong>plot_lifeimte</strong><span class="classifier">(bool, default=True)</span></dt><dd><p>creates a plot of lifetime</p>
 </dd>
 </dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>ne</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(1D, array like)</span></dt>
-<dd><p class="first last">number of electrons for each time step</p>
 </dd>
-<dt><strong>nh</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(1D, array like)</span></dt>
-<dd><p class="first last">number of holes for each time step</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>ne</strong><span class="classifier">(1D, array like)</span></dt><dd><p>number of electrons for each time step</p>
 </dd>
-<dt><strong>nd</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(nD, array like)</span></dt>
-<dd><p class="first last">occupation of defects in the posisble states. The n comes from the number of states in a defect.</p>
+<dt><strong>nh</strong><span class="classifier">(1D, array like)</span></dt><dd><p>number of holes for each time step</p>
 </dd>
-<dt><strong>t</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(array like)</span></dt>
-<dd><p class="first last">the time</p>
+<dt><strong>nd</strong><span class="classifier">(nD, array like)</span></dt><dd><p>occupation of defects in the posisble states. The n comes from the number of states in a defect.</p>
+</dd>
+<dt><strong>t</strong><span class="classifier">(array like)</span></dt><dd><p>the time</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
-<dt id="defects.solvers.steadyState">
-<code class="descclassname">defects.solvers.</code><code class="descname">steadyState</code><span class="sig-paren">(</span><em>s</em>, <em>nxc</em>, <em>plot_carriers=True</em>, <em>plot_lifetime=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#steadyState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.steadyState" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates the steady state lifetime of a sample, give a specific defect.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>s</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(class)</span></dt>
-<dd><p class="first last">the sample class</p>
+<dt id="defects.solvers.steadyState_carriers">
+<code class="sig-prename descclassname">defects.solvers.</code><code class="sig-name descname">steadyState_carriers</code><span class="sig-paren">(</span><em class="sig-param">s</em>, <em class="sig-param">nxc</em>, <em class="sig-param">ne</em>, <em class="sig-param">nh</em>, <em class="sig-param">output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#steadyState_carriers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.steadyState_carriers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the steady state lifetime of a sample for the provide of carrier concentration. This is much faster than steadyState_excesscarriers as it does not ensure charge neutrality.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>s</strong><span class="classifier">(class)</span></dt><dd><p>the sample class</p>
 </dd>
-<dt><strong>nxc</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(array like)</span></dt>
-<dd><p class="first last">The excess carrier density to be evaluated</p>
+<dt><strong>nxc</strong><span class="classifier">(array like)</span></dt><dd><p>The excess carrier density at which the recombiation is to be evaluated</p>
 </dd>
-<dt><strong>plot_carriers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(bool default  True)</span></dt>
-<dd><p class="first last">determines if the function automatically plots the carriers with time</p>
+<dt><strong>ne</strong><span class="classifier">(array like)</span></dt><dd><p>The electron density at which the recombiation is to be evaluated</p>
 </dd>
-<dt><strong>plot_lifetime</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(bool default  True)</span></dt>
-<dd><p class="first last">determines if the function automatically plots the lifetime as a function of excess carriers</p>
+<dt><strong>nh</strong><span class="classifier">(array like)</span></dt><dd><p>The hole density at which the recombiation is to be evaluated</p>
+</dd>
+<dt><strong>output</strong><span class="classifier">(bool default False)</span></dt><dd><p>determines the output. If True provides the carrier densities as well</p>
 </dd>
 </dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>gen</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(numpy array, in cm^-3)</span></dt>
-<dd><p class="first last">generation rate required to obtain the excess carrier density</p>
 </dd>
-<dt><strong>tau</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(numpy array, in seconds)</span></dt>
-<dd><p class="first last">the minoirty carrier lifetime</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>gen</strong><span class="classifier">(numpy array, in cm^-3)</span></dt><dd><p>generation rate required to obtain the excess carrier density</p>
+</dd>
+<dt><strong>tau</strong><span class="classifier">(numpy array, in seconds)</span></dt><dd><p>the minoirty carrier lifetime</p>
+</dd>
+<dt><strong>ne</strong><span class="classifier">(numpy array, in cm^-3, optional)</span></dt><dd><p>the number of free electrons</p>
+</dd>
+<dt><strong>nh</strong><span class="classifier">(numpy array, in cm^-3, optional)</span></dt><dd><p>the number of free holes</p>
+</dd>
+<dt><strong>nd</strong><span class="classifier">(numpy array, in cm^-3, optional)</span></dt><dd><p>the number of defect states</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>define a defect</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">defect</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Ed</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.35</span><span class="p">],</span> <span class="n">sigma_e</span><span class="o">=</span><span class="p">[</span><span class="mf">3e-14</span><span class="p">,</span> <span class="mf">1e-16</span><span class="p">],</span> <span class="n">sigma_h</span><span class="o">=</span><span class="p">[</span><span class="mf">3e-15</span><span class="p">,</span> <span class="mf">1e-15</span><span class="p">],</span> <span class="n">charge</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">Nd</span><span class="o">=</span><span class="mf">1e12</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>define the sample properties</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">Sample</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">tau_rad</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># a constant bulk lifetime in seconds</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">Nacc</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># number acceptors in cm^-3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">Ndon</span> <span class="o">=</span> <span class="mf">1e16</span> <span class="c1"># number donors in cm^-3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">temp</span> <span class="o">=</span> <span class="mi">300</span> <span class="c1"># the sample temperature</span>
+</pre></div>
+</div>
+<p>This  can be also used with the single level defect class, but here we are just showing the multi level defect</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">defectlist</span> <span class="o">=</span> <span class="n">MultiLevelDefect</span><span class="p">(</span><span class="n">Ed</span><span class="o">=</span><span class="n">defect</span><span class="p">[</span><span class="s1">&#39;Ed&#39;</span><span class="p">],</span> <span class="n">sigma_e</span><span class="o">=</span><span class="n">defect</span><span class="p">[</span><span class="s1">&#39;sigma_e&#39;</span><span class="p">],</span> <span class="n">sigma_h</span><span class="o">=</span><span class="n">defect</span><span class="p">[</span><span class="s1">&#39;sigma_h&#39;</span><span class="p">],</span> <span class="n">Nd</span><span class="o">=</span><span class="n">defect</span><span class="p">[</span><span class="s1">&#39;Nd&#39;</span><span class="p">],</span> <span class="n">charge</span><span class="o">=</span><span class="n">defect</span><span class="p">[</span><span class="s1">&#39;charge&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nxc</span> <span class="o">=</span> <span class="mf">1e13</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span><span class="p">,</span><span class="n">tau</span> <span class="o">=</span> <span class="n">steadyState</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">nxc</span><span class="p">,</span> <span class="n">plot_carriers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>   <span class="n">plot_lifetime</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gen = </span><span class="si">{0:.2e}</span><span class="s1">cm^-3        tau = </span><span class="si">{1:.2e}</span><span class="s1">s&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">gen</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tau</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span class="go">gen = 5.06e+17cm^-3        tau = 1.97e-05s</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="defects.solvers.steadyState_excesscarriers">
+<code class="sig-prename descclassname">defects.solvers.</code><code class="sig-name descname">steadyState_excesscarriers</code><span class="sig-paren">(</span><em class="sig-param">s</em>, <em class="sig-param">nxc</em>, <em class="sig-param">plot_carriers=True</em>, <em class="sig-param">plot_lifetime=True</em>, <em class="sig-param">output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#steadyState_excesscarriers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.steadyState_excesscarriers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the steady state lifetime of a sample, give a specific defect given the concentration of excess carriers. This ensures at each step that neutrality is ensured.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>s</strong><span class="classifier">(class)</span></dt><dd><p>the sample class</p>
+</dd>
+<dt><strong>nxc</strong><span class="classifier">(array like)</span></dt><dd><p>The excess carrier density to be evaluated</p>
+</dd>
+<dt><strong>plot_carriers</strong><span class="classifier">(bool default  True)</span></dt><dd><p>determines if the function automatically plots the carriers with time</p>
+</dd>
+<dt><strong>plot_lifetime</strong><span class="classifier">(bool default  True)</span></dt><dd><p>determines if the function automatically plots the lifetime as a function of excess carriers</p>
+</dd>
+<dt><strong>output</strong><span class="classifier">(bool default False)</span></dt><dd><p>determines the output. If True provides the carrier densities as well</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>gen</strong><span class="classifier">(numpy array, in cm^-3)</span></dt><dd><p>generation rate required to obtain the excess carrier density</p>
+</dd>
+<dt><strong>tau</strong><span class="classifier">(numpy array, in seconds)</span></dt><dd><p>the minoirty carrier lifetime</p>
+</dd>
+<dt><strong>ne</strong><span class="classifier">(numpy array, in cm^-3, optional)</span></dt><dd><p>the number of free electrons</p>
+</dd>
+<dt><strong>nh</strong><span class="classifier">(numpy array, in cm^-3, optional)</span></dt><dd><p>the number of free holes</p>
+</dd>
+<dt><strong>nd</strong><span class="classifier">(numpy array, in cm^-3, optional)</span></dt><dd><p>the number of defect states</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>define a defect</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">defect</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Ed</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.35</span><span class="p">],</span> <span class="n">sigma_e</span><span class="o">=</span><span class="p">[</span><span class="mf">3e-14</span><span class="p">,</span> <span class="mf">1e-16</span><span class="p">],</span> <span class="n">sigma_h</span><span class="o">=</span><span class="p">[</span><span class="mf">3e-15</span><span class="p">,</span> <span class="mf">1e-15</span><span class="p">],</span> <span class="n">charge</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">Nd</span><span class="o">=</span><span class="mf">1e12</span><span class="p">)</span>
@@ -150,163 +192,120 @@ This runs a square wave pulse, cals the components and cals lifeimte</p>
 
 <dl class="function">
 <dt id="defects.solvers.trans">
-<code class="descclassname">defects.solvers.</code><code class="descname">trans</code><span class="sig-paren">(</span><em>sample</em>, <em>ne</em>, <em>nh</em>, <em>nte</em>, <em>G_ss=1e+22</em>, <em>t_stepf=2000</em>, <em>t_stepNo=10000</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#trans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.trans" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">defects.solvers.</code><code class="sig-name descname">trans</code><span class="sig-paren">(</span><em class="sig-param">sample</em>, <em class="sig-param">ne</em>, <em class="sig-param">nh</em>, <em class="sig-param">nte</em>, <em class="sig-param">G_ss=1e+22</em>, <em class="sig-param">t_stepf=2000</em>, <em class="sig-param">t_stepNo=10000</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#trans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.trans" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that calculates the carrier density with time, under transient conditions.
 You need to provide the carrier density at which the simulations starts, and the
 illumination intensity under which the carriers being subjected to.</p>
 <p>This function allows easy passing of the samples class.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>sample: (class)</strong></dt>
-<dd><p class="first last">An instance of the sample class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sample: (class)</strong></dt><dd><p>An instance of the sample class</p>
 </dd>
-<dt><strong>ne: (float)</strong></dt>
-<dd><p class="first last">the inital number of free electrons</p>
+<dt><strong>ne: (float)</strong></dt><dd><p>the inital number of free electrons</p>
 </dd>
-<dt><strong>nh: (float)</strong></dt>
-<dd><p class="first last">the inital number of free holes</p>
+<dt><strong>nh: (float)</strong></dt><dd><p>the inital number of free holes</p>
 </dd>
-<dt><strong>nte: (float)</strong></dt>
-<dd><p class="first last">the inital number of electrons in the defect</p>
+<dt><strong>nte: (float)</strong></dt><dd><p>the inital number of electrons in the defect</p>
 </dd>
-<dt><strong>G_ss: (float)</strong></dt>
-<dd><p class="first last">The generation rate at which the decay ends at. This assumes the sample
+<dt><strong>G_ss: (float)</strong></dt><dd><p>The generation rate at which the decay ends at. This assumes the sample
 is in steady state at the start of the decay.</p>
 </dd>
-<dt><strong>t_stepf: (float)</strong></dt>
-<dd><p class="first last">t_stepf is the mutlipler to the smallest lifetime that is used as the length of the simulation.</p>
+<dt><strong>t_stepf: (float)</strong></dt><dd><p>t_stepf is the mutlipler to the smallest lifetime that is used as the length of the simulation.</p>
 </dd>
 </dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>ne: (array)</strong></dt>
-<dd><p class="first last">the number of free electrons with time</p>
 </dd>
-<dt><strong>nh: (array)</strong></dt>
-<dd><p class="first last">the number of holes electrons with time</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>ne: (array)</strong></dt><dd><p>the number of free electrons with time</p>
 </dd>
-<dt><strong>t: (array)</strong></dt>
-<dd><p class="first last">the time</p>
+<dt><strong>nh: (array)</strong></dt><dd><p>the number of holes electrons with time</p>
 </dd>
-<dt><strong>nte: (array)</strong></dt>
-<dd><p class="first last">the electrons in the traps</p>
+<dt><strong>t: (array)</strong></dt><dd><p>the time</p>
+</dd>
+<dt><strong>nte: (array)</strong></dt><dd><p>the electrons in the traps</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="defects.solvers.trans_multilevel">
-<code class="descclassname">defects.solvers.</code><code class="descname">trans_multilevel</code><span class="sig-paren">(</span><em>sample</em>, <em>ne</em>, <em>nh</em>, <em>ncs</em>, <em>G_ss=1e+22</em>, <em>t_stepf=2000</em>, <em>t_stepNo=10000</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#trans_multilevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.trans_multilevel" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">defects.solvers.</code><code class="sig-name descname">trans_multilevel</code><span class="sig-paren">(</span><em class="sig-param">sample</em>, <em class="sig-param">ne</em>, <em class="sig-param">nh</em>, <em class="sig-param">ncs</em>, <em class="sig-param">G_ss=1e+22</em>, <em class="sig-param">t_stepf=2000</em>, <em class="sig-param">t_stepNo=10000</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#trans_multilevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.trans_multilevel" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that calculates the carrier density with time, under transient conditions.
 You need to provide the carrier density at which the simulations starts, and the
 illumination intensity under which the carriers being subjected to.</p>
 <p>This function allows easy passing of the samples class.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>sample: (class)</strong></dt>
-<dd><p class="first last">An instance of the sample class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sample: (class)</strong></dt><dd><p>An instance of the sample class</p>
 </dd>
-<dt><strong>ne: (float)</strong></dt>
-<dd><p class="first last">the inital number of free electrons</p>
+<dt><strong>ne: (float)</strong></dt><dd><p>the inital number of free electrons</p>
 </dd>
-<dt><strong>nh: (float)</strong></dt>
-<dd><p class="first last">the inital number of free holes</p>
+<dt><strong>nh: (float)</strong></dt><dd><p>the inital number of free holes</p>
 </dd>
-<dt><strong>ncs: (float)</strong></dt>
-<dd><p class="first last">the fraction of each charge state</p>
+<dt><strong>ncs: (float)</strong></dt><dd><p>the fraction of each charge state</p>
 </dd>
-<dt><strong>G_ss: (float)</strong></dt>
-<dd><p class="first last">The generation rate at which the decay ends at. This assumes the sample
+<dt><strong>G_ss: (float)</strong></dt><dd><p>The generation rate at which the decay ends at. This assumes the sample
 is in steady state at the start of the decay.</p>
 </dd>
-<dt><strong>t_stepf: (float)</strong></dt>
-<dd><p class="first last">t_stepf is the mutlipler to the smallest lifetime that is used as the length of the simulation.</p>
+<dt><strong>t_stepf: (float)</strong></dt><dd><p>t_stepf is the mutlipler to the smallest lifetime that is used as the length of the simulation.</p>
 </dd>
 </dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>ne: (array)</strong></dt>
-<dd><p class="first last">the number of free electrons with time</p>
 </dd>
-<dt><strong>nh: (array)</strong></dt>
-<dd><p class="first last">the number of holes electrons with time</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>ne: (array)</strong></dt><dd><p>the number of free electrons with time</p>
 </dd>
-<dt><strong>t: (array)</strong></dt>
-<dd><p class="first last">the time</p>
+<dt><strong>nh: (array)</strong></dt><dd><p>the number of holes electrons with time</p>
 </dd>
-<dt><strong>ncs: (array)</strong></dt>
-<dd><p class="first last">the charge state of the defect</p>
+<dt><strong>t: (array)</strong></dt><dd><p>the time</p>
+</dd>
+<dt><strong>ncs: (array)</strong></dt><dd><p>the charge state of the defect</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="defects.solvers.transient_decay">
-<code class="descclassname">defects.solvers.</code><code class="descname">transient_decay</code><span class="sig-paren">(</span><em>s</em>, <em>nxc</em>, <em>t_stepf=500</em>, <em>t_stepNo=1000</em>, <em>auto=True</em>, <em>nxc_min=100000000.0</em>, <em>G_ss=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#transient_decay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.transient_decay" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">defects.solvers.</code><code class="sig-name descname">transient_decay</code><span class="sig-paren">(</span><em class="sig-param">s</em>, <em class="sig-param">nxc</em>, <em class="sig-param">t_stepf=500</em>, <em class="sig-param">t_stepNo=1000</em>, <em class="sig-param">auto=True</em>, <em class="sig-param">nxc_min=100000000.0</em>, <em class="sig-param">G_ss=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/solvers.html#transient_decay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.solvers.transient_decay" title="Permalink to this definition">¶</a></dt>
 <dd><p>calculates a transient decay from an inital steady state condition.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>s</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(sample class)</span></dt>
-<dd><p class="first last">the sample class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>s</strong><span class="classifier">(sample class)</span></dt><dd><p>the sample class</p>
 </dd>
-<dt><strong>nxc</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(float)</span></dt>
-<dd><p class="first last">The steady state number of excess carrier from which the decay states</p>
+<dt><strong>nxc</strong><span class="classifier">(float)</span></dt><dd><p>The steady state number of excess carrier from which the decay states</p>
 </dd>
-<dt><strong>t_stepf</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(numebr, optional)</span></dt>
-<dd><p class="first last">The step size of the numerical solution compared to the lowest of the SRH and radiative Lifetime</p>
+<dt><strong>t_stepf</strong><span class="classifier">(numebr, optional)</span></dt><dd><p>The step size of the numerical solution compared to the lowest of the SRH and radiative Lifetime</p>
 </dd>
-<dt><strong>t_stepNo</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(number, optional)</span></dt>
-<dd><p class="first last">The number of time steps to take</p>
+<dt><strong>t_stepNo</strong><span class="classifier">(number, optional)</span></dt><dd><p>The number of time steps to take</p>
 </dd>
-<dt><strong>auto</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(bool)</span></dt>
-<dd><p class="first last">If this is true, the simulation step size and number of steps will be increased until a desired excess carrier density is reached.</p>
+<dt><strong>auto</strong><span class="classifier">(bool)</span></dt><dd><p>If this is true, the program will attempt to solve the case until the nxc_min is reached. This is attempbed by appending sequantial simulations with each new simulations the time step (t_stepf) of the last simulation increased by a multiple.</p>
 </dd>
-<dt><strong>nxc_min</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(float, default=1e8)</span></dt>
-<dd><p class="first last">The excess carrier density at which the transient simulatulation should true and stop. This only has an impact if auto is set to true</p>
+<dt><strong>nxc_min</strong><span class="classifier">(float, default=1e8)</span></dt><dd><p>The excess carrier density at which the transient simulatulation should true and stop. This only has an impact if auto is set to true. the is caculated as the larger of the excess holes or excess electrons.</p>
 </dd>
-<dt><strong>G_ss</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(float, default = 0)</span></dt>
-<dd><p class="first last">Allows for a transient decay to a fixed generation rate.</p>
+<dt><strong>G_ss</strong><span class="classifier">(float, default = 0)</span></dt><dd><p>Allows for a transient decay to a fixed generation rate.</p>
 </dd>
 </dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>ne</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(array like)</span></dt>
-<dd><p class="first last">concentration of electrons</p>
 </dd>
-<dt><strong>nh</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(array like)</span></dt>
-<dd><p class="first last">concentration of holes</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>ne</strong><span class="classifier">(array like)</span></dt><dd><p>concentration of electrons</p>
 </dd>
-<dt><strong>nd</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(array like)</span></dt>
-<dd><p class="first last">concentration of defect/defect states</p>
+<dt><strong>nh</strong><span class="classifier">(array like)</span></dt><dd><p>concentration of holes</p>
 </dd>
-<dt><strong>t</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(array like)</span></dt>
-<dd><p class="first last">time.</p>
+<dt><strong>nd</strong><span class="classifier">(array like)</span></dt><dd><p>concentration of defect/defect states</p>
+</dd>
+<dt><strong>t</strong><span class="classifier">(array like)</span></dt><dd><p>time.</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -343,13 +342,11 @@ is in steady state at the start of the decay.</p>
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -362,7 +359,7 @@ is in steady state at the start of the decay.</p>
       &copy;2019, Mattias Klaus Juhl.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
