@@ -5,7 +5,9 @@ from . import defects
 from . import sample
 from . import solvers
 from . import timeConstants
-__version__ = "0.1.2"
+from . import conversions
+
+__version__ = "0.1.3"
 
 
 __title__ = "semiconductor defects"

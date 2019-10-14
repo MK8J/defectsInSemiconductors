@@ -220,6 +220,53 @@ def get_rec_transient(Ed, sigma_e, sigma_h, ne0, nh0, temp=300):
     return esc_thran
 
 
+def get_PC_twoLevel(Eds, sigma_es, sigma_hs, ni, ne0, nh0, temp=300):
+    '''
+    Calculates the time constant from PC
+
+    Parameters
+    ----------
+
+    Ed : (list of floats of len 2)
+        Energy level of the defect from the intrinsic level
+    sigma_e : (list of floats of len 2)
+        The capture cross section of electrons
+    sigma_h : (list of floats of len 2)
+        The capture cross section of holes
+    ni : (float)
+        The intrinsic carrier density
+    ne0 : (float)
+        The concentration of electrons in the dark
+    nh0 : (float)
+        The concentration of holes in the dark
+    temp : (float, optional default=300)
+        The temperature of the material
+
+    '''
+
+    vth_e, vth_h = tm.update(temp=temp)
+    Vt = C.k * temp / C.e
+
+    #
+
+    _bs = np.array(sigma_es) * vth_e * ni * np.exp(Eds / Vt) + \
+        np.array(sigma_hs) * vth_h * nh0
+    _as = np.array(sigma_hs) * vth_h * ni * np.exp(-Eds / Vt) + \
+        np.array(sigma_es) * vth_e * ne0
+
+    a1 = _as[0]
+    a2 = _as[1]
+    b2 = _bs[0]
+    b3 = _bs[1]
+
+    itau = a1 + a2 + b2 + b3 + \
+        np.sqrt((a1 + a2 + b2 + b3)**2 - 4 * (a1 * a2 + b2 * b3 + a1 * b3))
+
+    itau2 = a1 + a2 + b2 + b3 - \
+        np.sqrt((a1 + a2 + b2 + b3)**2 - 4 * (a1 * a2 + b2 * b3 + a1 * b3))
+    return 2 / itau, 2 / itau2
+
+
 def get_PC_transient(Ed, sigma_e, sigma_h, ni, ne0, nh0, temp=300):
     '''
     Calculates the time constant from PC

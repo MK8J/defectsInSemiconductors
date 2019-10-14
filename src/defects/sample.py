@@ -4,6 +4,8 @@ import scipy.constants as C
 from . import defects
 from semiconductor.material import IntrinsicCarrierDensity
 from semiconductor.material import ThermalVelocity
+from semiconductor.material import DOS
+from semiconductor.material import IntrinsicBandGap
 import numbers
 from scipy.optimize import newton
 
@@ -57,11 +59,35 @@ class Sample():
 
     def __init__(self, **kwargs):
         '''
-        initalisates the class
+        initalisates the class, things that can be provided:
+
+        Parameters
+        ----------
+        dopant_type : (str optional)
+            takes either 'n-type' or b'p-type'
+
+        Nacc : (float optional default = 1e16)
+            The acceptor concentration in cm^-3
+        Ndon : (float optional default = 1e16)
+            The donor concentration in cm^-3
+        ni : (float or string optional)
+            The intinsic carrier concentration. If float is provided that number is used, assumed to be in cm^-3. If a string is provided, it is assumed to be a model from semiconductor.material.IntrinsicCarrierDensity. If None is provided then the default model in semiconductor.material.IntrinsicCarrierDensity is used.
+        temp  : (float optional default = 300)
+            The temperature in kelvin
+        tau_rad : (float optional default = infinity)
+            The radiative lifetime in seconds.
+        vth_e : (float or string optional)
+            The thermal velocity of electrons. If float is provided that number is used, assumed to be in cm^-3. If a string is provided, it is assumed to be a model from semiconductor.material.ThermalVelocity. If None is provided then the default model in semiconductor.material.ThermalVelocity is used.
+        vth_h : (float or string optional)
+            The thermal velocity of holes. If float is provided that number is used, assumed to be in cm^-3. If a string is provided, it is assumed to be a model from semiconductor.material.ThermalVelocity. If None is provided then the default model in semiconductor.material.ThermalVelocity is used.
+        name : (string optional)
+            If you wanted to name your sample.
         '''
 
         self._vth_h = None
         self._vth_e = None
+        self._iEg = None
+        self._densityOfStates = None
 
         self.name = None
         self.sample_id = None
@@ -78,6 +104,22 @@ class Sample():
         self._defectlist = []
         self.tau_rad = np.inf
 
+        self.__ni_model = IntrinsicCarrierDensity(
+            material='Si', temp=self.temp,
+        )
+
+        self.__dos_model = DOS(
+            material='Si', temp=self.temp,
+        )
+
+        self.__ibg_model = IntrinsicBandGap(
+            material='Si', temp=self.temp,
+        )
+
+        self._vth_model = ThermalVelocity(
+            material='Si', temp=self.temp,
+        )
+
         self.__attrs(kwargs)
 
         self.equlibrium_concentrations()
@@ -93,6 +135,9 @@ class Sample():
 
     @property
     def defectlist(self):
+        '''
+        An akward function that is very useful. If a defect class is provided it is added to the defects in the sample (appened to the list). If nothing is provided it returns the current defects in the sample as a list.
+        '''
         return self._defectlist
 
     @defectlist.setter
@@ -233,12 +278,9 @@ class Sample():
         '''
         The thermal velocity of an electron
         '''
-        model = ThermalVelocity(
-            material='Si', temp=self.temp,
-        )
 
-        val = getvalue_modelornumber(self._vth_h, model, 'update',
-                                     author=self._vth_h)
+        val = getvalue_modelornumber(self._vth_h, self._vth_model, 'update',
+                                     author=self._vth_h, temp=self.temp)
 
         if isinstance(val, tuple):
             val = val[1]
@@ -259,12 +301,9 @@ class Sample():
         '''
         The thermal velocity of an electron
         '''
-        model = ThermalVelocity(
-            material='Si', temp=self.temp,
-        )
 
-        val = getvalue_modelornumber(self._vth_e, model, 'update',
-                                     author=self._vth_e)
+        val = getvalue_modelornumber(self._vth_e, self._vth_model, 'update',
+                                     author=self._vth_e, temp=self.temp)
         if isinstance(val, tuple):
             val = val[0]
 
@@ -288,12 +327,8 @@ class Sample():
         '''
         The sample's intrinsic carrier density. If this is not provided it will be calculated.
         '''
-        model = IntrinsicCarrierDensity(
-            material='Si', temp=self.temp,
-        )
-
-        val = getvalue_modelornumber(self._ni, model, 'update',
-                                     author=self._ni)
+        val = getvalue_modelornumber(self._ni, self.__ni_model, 'update',
+                                     author=self._ni, temp=self.temp)
 
         return val
 
@@ -316,6 +351,63 @@ class Sample():
         # return getvalue_modelornumber(self._nieff, model, 'ni_eff', ni=self.ni,
         #   author=self._nieff)
         return self.ni
+
+    @property
+    def iEg(self):
+        '''
+        provides the intrinsic band gap
+
+        Parameters
+        ----------
+
+        val: lfloat or string or None)
+            if floats, the sets the value of the intrinsic bandgap. If string  uses this model to calculate the bandgap. If None uses the default model.
+
+        Returns:
+        --------
+
+        iEg: (float eV)
+            The intrinsic bandgap
+        '''
+
+        val = getvalue_modelornumber(self._iEg, self.__ibg_model, 'update',
+                                     author=self._iEg, temp=self.temp)
+
+        return val
+
+    @iEg.setter
+    def iEg(self, val):
+        self._iEg = val
+
+    @property
+    def densityOfStates(self):
+        '''
+        provides the desity of states
+
+        Parameters
+        ----------
+
+        val: (list of len 2 or string or None)
+            if floats, Nc and Nv are set. If string then ususes this model to calculate Nc and Nv. If None uses the default model.
+
+        Returns:
+        --------
+
+        Nc:
+            the density of states in the conduction band
+        Nv:
+            the density of states in the valance band
+
+        '''
+
+        val = getvalue_modelornumber(self._densityOfStates, self.__dos_model, 'update',
+                                     author=self._densityOfStates, temp=self.temp)
+
+        return val
+
+    @densityOfStates.setter
+    def densityOfStates(self, val):
+        self._densityOfStates = val
 
     @ni_eff.setter
     def ni_eff(self, val):

@@ -6,8 +6,11 @@ primerize.egg-info/
 *.ipynb
 docs/.doc*
 build/*
+docs/source/*
 *.bat
 mac*
 test*
 *.pkl
 docs/source/*
+setup.*
+docs/build/*
