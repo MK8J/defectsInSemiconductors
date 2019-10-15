@@ -251,6 +251,53 @@
     <span class="k">return</span> <span class="n">esc_thran</span></div>
 
 
+<div class="viewcode-block" id="get_PC_twoLevel"><a class="viewcode-back" href="../../timeconstants/timeconstants.html#defects.timeConstants.get_PC_twoLevel">[docs]</a><span class="k">def</span> <span class="nf">get_PC_twoLevel</span><span class="p">(</span><span class="n">Eds</span><span class="p">,</span> <span class="n">sigma_es</span><span class="p">,</span> <span class="n">sigma_hs</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Calculates the time constant from PC</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Ed : (list of floats of len 2)</span>
+<span class="sd">        Energy level of the defect from the intrinsic level</span>
+<span class="sd">    sigma_e : (list of floats of len 2)</span>
+<span class="sd">        The capture cross section of electrons</span>
+<span class="sd">    sigma_h : (list of floats of len 2)</span>
+<span class="sd">        The capture cross section of holes</span>
+<span class="sd">    ni : (float)</span>
+<span class="sd">        The intrinsic carrier density</span>
+<span class="sd">    ne0 : (float)</span>
+<span class="sd">        The concentration of electrons in the dark</span>
+<span class="sd">    nh0 : (float)</span>
+<span class="sd">        The concentration of holes in the dark</span>
+<span class="sd">    temp : (float, optional default=300)</span>
+<span class="sd">        The temperature of the material</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">vth_e</span><span class="p">,</span> <span class="n">vth_h</span> <span class="o">=</span> <span class="n">tm</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">)</span>
+    <span class="n">Vt</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">temp</span> <span class="o">/</span> <span class="n">C</span><span class="o">.</span><span class="n">e</span>
+
+    <span class="c1">#</span>
+
+    <span class="n">_bs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sigma_es</span><span class="p">)</span> <span class="o">*</span> <span class="n">vth_e</span> <span class="o">*</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Eds</span> <span class="o">/</span> <span class="n">Vt</span><span class="p">)</span> <span class="o">+</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sigma_hs</span><span class="p">)</span> <span class="o">*</span> <span class="n">vth_h</span> <span class="o">*</span> <span class="n">nh0</span>
+    <span class="n">_as</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sigma_hs</span><span class="p">)</span> <span class="o">*</span> <span class="n">vth_h</span> <span class="o">*</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">Eds</span> <span class="o">/</span> <span class="n">Vt</span><span class="p">)</span> <span class="o">+</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sigma_es</span><span class="p">)</span> <span class="o">*</span> <span class="n">vth_e</span> <span class="o">*</span> <span class="n">ne0</span>
+
+    <span class="n">a1</span> <span class="o">=</span> <span class="n">_as</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">a2</span> <span class="o">=</span> <span class="n">_as</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">b2</span> <span class="o">=</span> <span class="n">_bs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">b3</span> <span class="o">=</span> <span class="n">_bs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">itau</span> <span class="o">=</span> <span class="n">a1</span> <span class="o">+</span> <span class="n">a2</span> <span class="o">+</span> <span class="n">b2</span> <span class="o">+</span> <span class="n">b3</span> <span class="o">+</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">a1</span> <span class="o">+</span> <span class="n">a2</span> <span class="o">+</span> <span class="n">b2</span> <span class="o">+</span> <span class="n">b3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">a1</span> <span class="o">*</span> <span class="n">a2</span> <span class="o">+</span> <span class="n">b2</span> <span class="o">*</span> <span class="n">b3</span> <span class="o">+</span> <span class="n">a1</span> <span class="o">*</span> <span class="n">b3</span><span class="p">))</span>
+
+    <span class="n">itau2</span> <span class="o">=</span> <span class="n">a1</span> <span class="o">+</span> <span class="n">a2</span> <span class="o">+</span> <span class="n">b2</span> <span class="o">+</span> <span class="n">b3</span> <span class="o">-</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">a1</span> <span class="o">+</span> <span class="n">a2</span> <span class="o">+</span> <span class="n">b2</span> <span class="o">+</span> <span class="n">b3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">a1</span> <span class="o">*</span> <span class="n">a2</span> <span class="o">+</span> <span class="n">b2</span> <span class="o">*</span> <span class="n">b3</span> <span class="o">+</span> <span class="n">a1</span> <span class="o">*</span> <span class="n">b3</span><span class="p">))</span>
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">itau</span><span class="p">,</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">itau2</span></div>
+
+
 <div class="viewcode-block" id="get_PC_transient"><a class="viewcode-back" href="../../timeconstants/timeconstants.html#defects.timeConstants.get_PC_transient">[docs]</a><span class="k">def</span> <span class="nf">get_PC_transient</span><span class="p">(</span><span class="n">Ed</span><span class="p">,</span> <span class="n">sigma_e</span><span class="p">,</span> <span class="n">sigma_h</span><span class="p">,</span> <span class="n">ni</span><span class="p">,</span> <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Calculates the time constant from PC</span>

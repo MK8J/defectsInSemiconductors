@@ -184,6 +184,32 @@ is on the opposite side of the band half than the defect.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="defects.timeConstants.get_PC_twoLevel">
+<code class="sig-prename descclassname">defects.timeConstants.</code><code class="sig-name descname">get_PC_twoLevel</code><span class="sig-paren">(</span><em class="sig-param">Eds</em>, <em class="sig-param">sigma_es</em>, <em class="sig-param">sigma_hs</em>, <em class="sig-param">ni</em>, <em class="sig-param">ne0</em>, <em class="sig-param">nh0</em>, <em class="sig-param">temp=300</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/timeConstants.html#get_PC_twoLevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.timeConstants.get_PC_twoLevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the time constant from PC</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>Ed</strong><span class="classifier">(list of floats of len 2)</span></dt><dd><p>Energy level of the defect from the intrinsic level</p>
+</dd>
+<dt><strong>sigma_e</strong><span class="classifier">(list of floats of len 2)</span></dt><dd><p>The capture cross section of electrons</p>
+</dd>
+<dt><strong>sigma_h</strong><span class="classifier">(list of floats of len 2)</span></dt><dd><p>The capture cross section of holes</p>
+</dd>
+<dt><strong>ni</strong><span class="classifier">(float)</span></dt><dd><p>The intrinsic carrier density</p>
+</dd>
+<dt><strong>ne0</strong><span class="classifier">(float)</span></dt><dd><p>The concentration of electrons in the dark</p>
+</dd>
+<dt><strong>nh0</strong><span class="classifier">(float)</span></dt><dd><p>The concentration of holes in the dark</p>
+</dd>
+<dt><strong>temp</strong><span class="classifier">(float, optional default=300)</span></dt><dd><p>The temperature of the material</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="defects.timeConstants.get_electron_timeconstant">
 <code class="sig-prename descclassname">defects.timeConstants.</code><code class="sig-name descname">get_electron_timeconstant</code><span class="sig-paren">(</span><em class="sig-param">Ed</em>, <em class="sig-param">sigma_e</em>, <em class="sig-param">ni</em>, <em class="sig-param">temp=300</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/timeConstants.html#get_electron_timeconstant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.timeConstants.get_electron_timeconstant" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the time for the emission of an electron</p>

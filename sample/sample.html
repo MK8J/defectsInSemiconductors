@@ -50,10 +50,15 @@ large class</p>
 </dd>
 <dt><a class="reference internal" href="#defects.sample.Sample.Vt" title="defects.sample.Sample.Vt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Vt</span></code></a></dt><dd><p>The thermal voltage</p>
 </dd>
-<dt><strong>defectlist</strong></dt><dd></dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.defectlist" title="defects.sample.Sample.defectlist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">defectlist</span></code></a></dt><dd><p>An akward function that is very useful.</p>
+</dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.densityOfStates" title="defects.sample.Sample.densityOfStates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">densityOfStates</span></code></a></dt><dd><p>provides the desity of states</p>
+</dd>
 <dt><a class="reference internal" href="#defects.sample.Sample.dopant_type" title="defects.sample.Sample.dopant_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dopant_type</span></code></a></dt><dd><p>The sample’s dopant type</p>
 </dd>
 <dt><a class="reference internal" href="#defects.sample.Sample.doping" title="defects.sample.Sample.doping"><code class="xref py py-obj docutils literal notranslate"><span class="pre">doping</span></code></a></dt><dd><p>The number of dopants.</p>
+</dd>
+<dt><a class="reference internal" href="#defects.sample.Sample.iEg" title="defects.sample.Sample.iEg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iEg</span></code></a></dt><dd><p>provides the intrinsic band gap</p>
 </dd>
 <dt><a class="reference internal" href="#defects.sample.Sample.ni" title="defects.sample.Sample.ni"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ni</span></code></a></dt><dd><p>The sample’s intrinsic carrier density.</p>
 </dd>
@@ -105,9 +110,29 @@ large class</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="defects.sample.Sample.defectlist">
+<em class="property">property </em><code class="sig-name descname">defectlist</code><a class="headerlink" href="#defects.sample.Sample.defectlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>An akward function that is very useful. If a defect class is provided it is added to the defects in the sample (appened to the list). If nothing is provided it returns the current defects in the sample as a list.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="defects.sample.Sample.defectlist_removeDefect">
 <code class="sig-name descname">defectlist_removeDefect</code><span class="sig-paren">(</span><em class="sig-param">number</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/defects/sample.html#Sample.defectlist_removeDefect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#defects.sample.Sample.defectlist_removeDefect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes a single defect from the defect list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.sample.Sample.densityOfStates">
+<em class="property">property </em><code class="sig-name descname">densityOfStates</code><a class="headerlink" href="#defects.sample.Sample.densityOfStates" title="Permalink to this definition">¶</a></dt>
+<dd><p>provides the desity of states</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>val: (list of len 2 or string or None)</strong></dt><dd><p>if floats, Nc and Nv are set. If string then ususes this model to calculate Nc and Nv. If None uses the default model.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -139,6 +164,20 @@ large class</p>
 <dt><strong>ne0</strong><span class="classifier">float</span></dt><dd><p>the free electron concentration in the dark</p>
 </dd>
 <dt><strong>nh0</strong><span class="classifier">float</span></dt><dd><p>the free hole concentration in the dark</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="defects.sample.Sample.iEg">
+<em class="property">property </em><code class="sig-name descname">iEg</code><a class="headerlink" href="#defects.sample.Sample.iEg" title="Permalink to this definition">¶</a></dt>
+<dd><p>provides the intrinsic band gap</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>val: lfloat or string or None)</strong></dt><dd><p>if floats, the sets the value of the intrinsic bandgap. If string  uses this model to calculate the bandgap. If None uses the default model.</p>
 </dd>
 </dl>
 </dd>

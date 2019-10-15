@@ -35,8 +35,10 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">defects</span>
 <span class="kn">from</span> <span class="nn">semiconductor.material</span> <span class="k">import</span> <span class="n">IntrinsicCarrierDensity</span>
 <span class="kn">from</span> <span class="nn">semiconductor.material</span> <span class="k">import</span> <span class="n">ThermalVelocity</span>
+<span class="kn">from</span> <span class="nn">semiconductor.material</span> <span class="k">import</span> <span class="n">DOS</span>
+<span class="kn">from</span> <span class="nn">semiconductor.material</span> <span class="k">import</span> <span class="n">IntrinsicBandGap</span>
 <span class="kn">import</span> <span class="nn">numbers</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">newton</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">newton</span><span class="p">,</span> <span class="n">toms748</span>
 
 
 <span class="k">def</span> <span class="nf">getvalue_modelornumber</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">extension</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -88,11 +90,35 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        initalisates the class</span>
+<span class="sd">        initalisates the class, things that can be provided:</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dopant_type : (str optional)</span>
+<span class="sd">            takes either &#39;n-type&#39; or b&#39;p-type&#39;</span>
+
+<span class="sd">        Nacc : (float optional default = 1e16)</span>
+<span class="sd">            The acceptor concentration in cm^-3</span>
+<span class="sd">        Ndon : (float optional default = 1e16)</span>
+<span class="sd">            The donor concentration in cm^-3</span>
+<span class="sd">        ni : (float or string optional)</span>
+<span class="sd">            The intinsic carrier concentration. If float is provided that number is used, assumed to be in cm^-3. If a string is provided, it is assumed to be a model from semiconductor.material.IntrinsicCarrierDensity. If None is provided then the default model in semiconductor.material.IntrinsicCarrierDensity is used.</span>
+<span class="sd">        temp  : (float optional default = 300)</span>
+<span class="sd">            The temperature in kelvin</span>
+<span class="sd">        tau_rad : (float optional default = infinity)</span>
+<span class="sd">            The radiative lifetime in seconds.</span>
+<span class="sd">        vth_e : (float or string optional)</span>
+<span class="sd">            The thermal velocity of electrons. If float is provided that number is used, assumed to be in cm^-3. If a string is provided, it is assumed to be a model from semiconductor.material.ThermalVelocity. If None is provided then the default model in semiconductor.material.ThermalVelocity is used.</span>
+<span class="sd">        vth_h : (float or string optional)</span>
+<span class="sd">            The thermal velocity of holes. If float is provided that number is used, assumed to be in cm^-3. If a string is provided, it is assumed to be a model from semiconductor.material.ThermalVelocity. If None is provided then the default model in semiconductor.material.ThermalVelocity is used.</span>
+<span class="sd">        name : (string optional)</span>
+<span class="sd">            If you wanted to name your sample.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_vth_h</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_vth_e</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iEg</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_densityOfStates</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sample_id</span> <span class="o">=</span> <span class="kc">None</span>
@@ -109,6 +135,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_defectlist</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tau_rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">__ni_model</span> <span class="o">=</span> <span class="n">IntrinsicCarrierDensity</span><span class="p">(</span>
+            <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dos_model</span> <span class="o">=</span> <span class="n">DOS</span><span class="p">(</span>
+            <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__ibg_model</span> <span class="o">=</span> <span class="n">IntrinsicBandGap</span><span class="p">(</span>
+            <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vth_model</span> <span class="o">=</span> <span class="n">ThermalVelocity</span><span class="p">(</span>
+            <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">,</span>
+        <span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__attrs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">equlibrium_concentrations</span><span class="p">()</span>
@@ -124,6 +166,9 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">defectlist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        An akward function that is very useful. If a defect class is provided it is added to the defects in the sample (appened to the list). If nothing is provided it returns the current defects in the sample as a list.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defectlist</span>
 
     <span class="nd">@defectlist</span><span class="o">.</span><span class="n">setter</span>
@@ -264,12 +309,9 @@
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        The thermal velocity of an electron</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="n">model</span> <span class="o">=</span> <span class="n">ThermalVelocity</span><span class="p">(</span>
-            <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">,</span>
-        <span class="p">)</span>
 
-        <span class="n">val</span> <span class="o">=</span> <span class="n">getvalue_modelornumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_h</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="s1">&#39;update&#39;</span><span class="p">,</span>
-                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_h</span><span class="p">)</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">getvalue_modelornumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vth_model</span><span class="p">,</span> <span class="s1">&#39;update&#39;</span><span class="p">,</span>
+                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_h</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
             <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -290,12 +332,9 @@
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        The thermal velocity of an electron</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="n">model</span> <span class="o">=</span> <span class="n">ThermalVelocity</span><span class="p">(</span>
-            <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">,</span>
-        <span class="p">)</span>
 
-        <span class="n">val</span> <span class="o">=</span> <span class="n">getvalue_modelornumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_e</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="s1">&#39;update&#39;</span><span class="p">,</span>
-                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_e</span><span class="p">)</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">getvalue_modelornumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_e</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vth_model</span><span class="p">,</span> <span class="s1">&#39;update&#39;</span><span class="p">,</span>
+                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_vth_e</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
             <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -319,12 +358,8 @@
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        The sample&#39;s intrinsic carrier density. If this is not provided it will be calculated.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="n">model</span> <span class="o">=</span> <span class="n">IntrinsicCarrierDensity</span><span class="p">(</span>
-            <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="n">val</span> <span class="o">=</span> <span class="n">getvalue_modelornumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ni</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="s1">&#39;update&#39;</span><span class="p">,</span>
-                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ni</span><span class="p">)</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">getvalue_modelornumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ni</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ni_model</span><span class="p">,</span> <span class="s1">&#39;update&#39;</span><span class="p">,</span>
+                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ni</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">val</span>
 
@@ -348,6 +383,63 @@
         <span class="c1">#   author=self._nieff)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ni</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">iEg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        provides the intrinsic band gap</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        val: lfloat or string or None)</span>
+<span class="sd">            if floats, the sets the value of the intrinsic bandgap. If string  uses this model to calculate the bandgap. If None uses the default model.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        iEg: (float eV)</span>
+<span class="sd">            The intrinsic bandgap</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">getvalue_modelornumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_iEg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ibg_model</span><span class="p">,</span> <span class="s1">&#39;update&#39;</span><span class="p">,</span>
+                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_iEg</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@iEg</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">iEg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iEg</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">densityOfStates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        provides the desity of states</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        val: (list of len 2 or string or None)</span>
+<span class="sd">            if floats, Nc and Nv are set. If string then ususes this model to calculate Nc and Nv. If None uses the default model.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        Nc:</span>
+<span class="sd">            the density of states in the conduction band</span>
+<span class="sd">        Nv:</span>
+<span class="sd">            the density of states in the valance band</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">getvalue_modelornumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_densityOfStates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dos_model</span><span class="p">,</span> <span class="s1">&#39;update&#39;</span><span class="p">,</span>
+                                     <span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_densityOfStates</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@densityOfStates</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">densityOfStates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_densityOfStates</span> <span class="o">=</span> <span class="n">val</span>
+
     <span class="nd">@ni_eff</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">ni_eff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nieff</span> <span class="o">=</span> <span class="n">val</span>
@@ -368,24 +460,17 @@
 <span class="sd">        nh0 : float</span>
 <span class="sd">            the free hole concentration in the dark</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">def</span> <span class="nf">charges</span><span class="p">(</span><span class="n">majoirty_carrier</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nacc</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndon</span><span class="p">:</span>
-                <span class="n">nh0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">majoirty_carrier</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-                <span class="n">ne0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ni</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">majoirty_carrier</span><span class="p">,</span>
-                               <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndon</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nacc</span><span class="p">:</span>
-                <span class="n">ne0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">majoirty_carrier</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-                <span class="n">nh0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ni</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">majoirty_carrier</span><span class="p">,</span>
-                               <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">ne0</span> <span class="o">=</span> <span class="n">ni</span>
-                <span class="n">nh0</span> <span class="o">=</span> <span class="n">ni</span>
+        <span class="k">def</span> <span class="nf">charges</span><span class="p">(</span><span class="n">Ef</span><span class="p">):</span>
+            <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Ef</span><span class="p">,</span> <span class="o">-</span><span class="n">Ef</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vt</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span>
 
-        <span class="k">def</span> <span class="nf">possion</span><span class="p">(</span><span class="n">majoirty_carrier</span><span class="p">):</span>
-            <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span> <span class="o">=</span> <span class="n">charges</span><span class="p">(</span><span class="n">majoirty_carrier</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">d_charges</span><span class="p">(</span><span class="n">Ef</span><span class="p">):</span>
+            <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ni</span><span class="p">,</span> <span class="o">-</span><span class="n">ni</span><span class="p">])</span> <span class="o">*</span> \
+                <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Ef</span><span class="p">,</span> <span class="o">-</span><span class="n">Ef</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vt</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vt</span>
+            <span class="k">return</span> <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span>
 
-            <span class="n">Ef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ne0</span> <span class="o">/</span> <span class="n">ni</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">possion</span><span class="p">(</span><span class="n">Ef</span><span class="p">):</span>
+            <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span> <span class="o">=</span> <span class="n">charges</span><span class="p">(</span><span class="n">Ef</span><span class="p">)</span>
 
             <span class="c1"># this is just a wrapper to set nte, which the following</span>
             <span class="c1"># possion function uses</span>
@@ -393,15 +478,52 @@
             <span class="k">for</span> <span class="n">_dft</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defectlist</span><span class="p">:</span>
                 <span class="n">defect_charge</span> <span class="o">+=</span> <span class="n">_dft</span><span class="o">.</span><span class="n">net_charge</span><span class="p">(</span><span class="n">Ef</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">)</span>
 
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndon</span> <span class="o">-</span> <span class="n">ne0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nacc</span> <span class="o">+</span> <span class="n">nh0</span> <span class="o">+</span> <span class="n">defect_charge</span>
+            <span class="n">charge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndon</span> <span class="o">-</span> <span class="n">ne0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nacc</span> <span class="o">+</span> <span class="n">nh0</span> <span class="o">+</span> <span class="n">defect_charge</span>
+            <span class="c1"># print(&#39;\nsum and individuals for Ef=&#39;,</span>
+            <span class="c1"># Ef, &#39;{0:.2e}&#39;.format(charge))</span>
+            <span class="c1"># print(self.Ndon - ne0 - self.Nacc + nh0 + defect_charge)</span>
+            <span class="c1"># print(self.Vt * np.log(abs(self.Ndon - ne0 -</span>
+            <span class="c1">#                            self.Nacc + nh0 + defect_charge - 1)))</span>
+            <span class="c1"># print(self.Ndon, &#39;{0:.2e}&#39;.format(ne0),</span>
+            <span class="c1">#       self.Nacc, &#39;{0:.2e}&#39;.format(nh0), defect_charge)</span>
+            <span class="c1"># plt.figure(&#39;norm&#39;)</span>
+            <span class="c1"># plt.plot(Ef, (charge), &#39;r.&#39;)</span>
+            <span class="c1"># plt.figure(&#39;log&#39;)</span>
+            <span class="c1"># plt.plot(Ef, np.log(abs((charge)) + 1), &#39;r.&#39;)</span>
+
+            <span class="k">return</span> <span class="n">charge</span>
+
+        <span class="k">def</span> <span class="nf">d_possion</span><span class="p">(</span><span class="n">Ef</span><span class="p">):</span>
+            <span class="n">dne0</span><span class="p">,</span> <span class="n">dnh0</span> <span class="o">=</span> <span class="n">d_charges</span><span class="p">(</span><span class="n">Ef</span><span class="p">)</span>
+            <span class="n">ne0</span><span class="p">,</span> <span class="n">nh0</span> <span class="o">=</span> <span class="n">charges</span><span class="p">(</span><span class="n">Ef</span><span class="p">)</span>
+
+            <span class="c1"># this is just a wrapper to set nte, which the following</span>
+            <span class="c1"># possion function uses</span>
+            <span class="n">defect_charge</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">d_defect_charge</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">_dft</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defectlist</span><span class="p">:</span>
+                <span class="n">defect_charge</span> <span class="o">=</span> <span class="n">_dft</span><span class="o">.</span><span class="n">net_charge</span><span class="p">(</span>
+                    <span class="n">Ef</span> <span class="o">+</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">)</span>
+                <span class="n">d_defect_charge</span> <span class="o">+=</span> <span class="n">_dft</span><span class="o">.</span><span class="n">net_charge</span><span class="p">(</span>
+                    <span class="n">Ef</span> <span class="o">+</span> <span class="mf">0.0001</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">)</span> <span class="o">-</span> <span class="n">_dft</span><span class="o">.</span><span class="n">net_charge</span><span class="p">(</span>
+                    <span class="n">Ef</span> <span class="o">+</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp</span><span class="p">)</span>
+
+            <span class="c1"># f = self.Ndon - ne0 - self.Nacc + nh0 + defect_charge + 1</span>
+            <span class="c1"># fd = -dne0 + dnh0 + d_defect_charge</span>
+            <span class="c1"># return fd / f</span>
+
+            <span class="k">return</span> <span class="p">(</span><span class="o">-</span> <span class="n">dne0</span> <span class="o">+</span> <span class="n">dnh0</span> <span class="o">+</span> <span class="n">d_defect_charge</span><span class="p">)</span>
+
         <span class="c1"># This line is to speed up calculations</span>
         <span class="c1"># recalculation of ni each time is quite slow.</span>
         <span class="n">ni</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ni</span>
         <span class="c1"># initial guess of majority carrier</span>
-        <span class="n">mjc</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">possion</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Nacc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndon</span><span class="p">),</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+        <span class="c1"># mjc = newton(possion, abs(self.Nacc - self.Ndon), maxiter=100)</span>
 
+        <span class="c1"># mjc = newton(possion, x0=Ef, maxiter=200, fprime=d_possion)</span>
+        <span class="n">Ef</span> <span class="o">=</span> <span class="n">toms748</span><span class="p">(</span><span class="n">possion</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="c1"># new lets work out the details</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ne0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nh0</span> <span class="o">=</span> <span class="n">charges</span><span class="p">(</span><span class="n">mjc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ne0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nh0</span> <span class="o">=</span> <span class="n">charges</span><span class="p">(</span><span class="n">Ef</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ne0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nh0</span></div>
 
@@ -444,6 +566,43 @@
 
             <span class="k">return</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span>
 
+        <span class="k">def</span> <span class="nf">charges_HD</span><span class="p">(</span><span class="n">Ef</span><span class="p">):</span>
+
+            <span class="c1"># if the fermi energy leve is</span>
+            <span class="c1">#    negative the holes are the majority carrier</span>
+            <span class="k">if</span> <span class="n">Ef</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">qEfh</span> <span class="o">=</span> <span class="n">Ef</span>
+                <span class="n">nh</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">qEfh</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vt</span><span class="p">)</span>
+                <span class="n">ne</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ne0</span> <span class="o">+</span> <span class="n">nxc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">qEfe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ne</span> <span class="o">/</span> <span class="n">ni</span><span class="p">)</span>
+
+            <span class="c1"># if its bigger than zero the electrons are</span>
+            <span class="k">if</span> <span class="n">Ef</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">qEfe</span> <span class="o">=</span> <span class="n">Ef</span>
+                <span class="n">ne</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">qEfe</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vt</span><span class="p">)</span>
+                <span class="n">nh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nh0</span> <span class="o">+</span> <span class="n">nxc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">qEfh</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nh</span> <span class="o">/</span> <span class="n">ni</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">qEfe</span><span class="p">,</span> <span class="n">qEfh</span><span class="p">,</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span>
+
+        <span class="k">def</span> <span class="nf">possion_hd</span><span class="p">(</span><span class="n">Ef</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            determine the charge neutrality for high defect</span>
+<span class="sd">            densities</span>
+
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">qEfe</span><span class="p">,</span> <span class="n">qEfh</span><span class="p">,</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span> <span class="o">=</span> <span class="n">charges_HD</span><span class="p">(</span><span class="n">Ef</span><span class="p">)</span>
+
+            <span class="c1"># this is just a wrapper to set nte, which the following</span>
+            <span class="c1"># possion function uses</span>
+            <span class="n">defect_charge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+            <span class="c1"># find the charge of the defects</span>
+            <span class="k">for</span> <span class="n">_dft</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defectlist</span><span class="p">:</span>
+                <span class="n">defect_charge</span> <span class="o">+=</span> <span class="n">_dft</span><span class="o">.</span><span class="n">net_charge</span><span class="p">([</span><span class="n">qEfe</span><span class="p">,</span> <span class="n">qEfh</span><span class="p">],</span> <span class="n">temp</span><span class="p">)</span>
+
+            <span class="c1"># add up all the charges</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndon</span> <span class="o">-</span> <span class="n">ne</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nacc</span> <span class="o">+</span> <span class="n">nh</span> <span class="o">+</span> <span class="n">defect_charge</span>
+
         <span class="k">def</span> <span class="nf">possion</span><span class="p">(</span><span class="n">mj</span><span class="p">):</span>
             <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            determine the charge neutrality</span>
@@ -480,25 +639,47 @@
         <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp</span>
 
         <span class="n">mj</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ne0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nh0</span><span class="p">)</span>
+        <span class="n">Nd</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">dft</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defectlist</span><span class="p">:</span>
+            <span class="n">Nd</span> <span class="o">+=</span> <span class="n">dft</span><span class="o">.</span><span class="n">Nd</span>
         <span class="c1"># need to do each carrier density individually</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">nxc_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nxc</span><span class="p">):</span>
-            <span class="c1"># initial guess of the number of excess majority carrier</span>
-            <span class="c1"># then solve for charge conservation</span>
-            <span class="n">mj</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">possion</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-                <span class="n">mj</span> <span class="o">+</span> <span class="n">nxc</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.48e-38</span><span class="p">)</span>
-            <span class="c1"># get the values</span>
-            <span class="n">ne_i</span><span class="p">,</span> <span class="n">nh_i</span> <span class="o">=</span> <span class="n">charges</span><span class="p">(</span><span class="n">mj</span><span class="p">)</span>
+        <span class="c1"># for low defect densities its all easy</span>
+        <span class="k">if</span> <span class="n">Nd</span> <span class="o">&lt;</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">mj</span><span class="p">:</span>
 
-            <span class="c1"># save the values into the array</span>
-            <span class="n">ne</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ne_i</span>
-            <span class="n">nh</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">nh_i</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">nxc_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nxc</span><span class="p">):</span>
+                <span class="c1"># initial guess of the number of excess majority carrier</span>
+                <span class="c1"># then solve for charge conservation</span>
+                <span class="n">mj</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">possion</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                    <span class="n">mj</span> <span class="o">+</span> <span class="n">nxc</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.48e-38</span><span class="p">)</span>
+                <span class="c1"># get the values</span>
+                <span class="n">ne_i</span><span class="p">,</span> <span class="n">nh_i</span> <span class="o">=</span> <span class="n">charges</span><span class="p">(</span><span class="n">mj</span><span class="p">)</span>
 
-            <span class="c1"># save the defect concentrations</span>
-            <span class="k">for</span> <span class="n">_dft</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defectlist</span><span class="p">:</span>
-                <span class="c1"># nd.append(_dft.charge_state_concentration(</span>
-                    <span class="c1"># [Vt * np.log(ne_i / ni), -Vt * np.log(nh_i / ni)], temp))</span>
-                <span class="n">nd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">nd</span><span class="p">,</span> <span class="n">_dft</span><span class="o">.</span><span class="n">charge_state_concentration</span><span class="p">(</span>
-                    <span class="p">[</span><span class="n">Vt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ne_i</span> <span class="o">/</span> <span class="n">ni</span><span class="p">),</span> <span class="o">-</span><span class="n">Vt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nh_i</span> <span class="o">/</span> <span class="n">ni</span><span class="p">)],</span> <span class="n">temp</span><span class="p">)))</span>
+                <span class="c1"># save the values into the array</span>
+                <span class="n">ne</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ne_i</span>
+                <span class="n">nh</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">nh_i</span>
+
+                <span class="c1"># save the defect concentrations</span>
+                <span class="k">for</span> <span class="n">_dft</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defectlist</span><span class="p">:</span>
+                    <span class="c1"># nd.append(_dft.charge_state_concentration(</span>
+                        <span class="c1"># [Vt * np.log(ne_i / ni), -Vt * np.log(nh_i / ni)], temp))</span>
+                    <span class="n">nd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">nd</span><span class="p">,</span> <span class="n">_dft</span><span class="o">.</span><span class="n">charge_state_concentration</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">Vt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ne_i</span> <span class="o">/</span> <span class="n">ni</span><span class="p">),</span> <span class="o">-</span><span class="n">Vt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nh_i</span> <span class="o">/</span> <span class="n">ni</span><span class="p">)],</span> <span class="n">temp</span><span class="p">)))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">nxc_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nxc</span><span class="p">):</span>
+
+                <span class="n">Ef</span> <span class="o">=</span> <span class="n">toms748</span><span class="p">(</span><span class="n">possion_hd</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+                <span class="n">qEfe</span><span class="p">,</span> <span class="n">qEfh</span><span class="p">,</span> <span class="n">ne_i</span><span class="p">,</span> <span class="n">nh_i</span> <span class="o">=</span> <span class="n">charges_HD</span><span class="p">(</span><span class="n">Ef</span><span class="p">)</span>
+                <span class="c1"># save the values into the array</span>
+                <span class="n">ne</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ne_i</span>
+                <span class="n">nh</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">nh_i</span>
+
+                <span class="c1"># save the defect concentrations</span>
+                <span class="k">for</span> <span class="n">_dft</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defectlist</span><span class="p">:</span>
+
+                    <span class="n">nd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">nd</span><span class="p">,</span> <span class="n">_dft</span><span class="o">.</span><span class="n">charge_state_concentration</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">qEfe</span><span class="p">,</span> <span class="n">qEfh</span><span class="p">],</span> <span class="n">temp</span><span class="p">)))</span>
 
         <span class="k">return</span> <span class="n">ne</span><span class="p">,</span> <span class="n">nh</span><span class="p">,</span> <span class="n">nd</span></div></div>
 
