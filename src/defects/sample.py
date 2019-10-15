@@ -7,7 +7,7 @@ from semiconductor.material import ThermalVelocity
 from semiconductor.material import DOS
 from semiconductor.material import IntrinsicBandGap
 import numbers
-from scipy.optimize import newton
+from scipy.optimize import newton, toms748
 
 
 def getvalue_modelornumber(value, model, extension, **kwargs):
@@ -429,24 +429,17 @@ class Sample():
         nh0 : float
             the free hole concentration in the dark
         '''
-        def charges(majoirty_carrier):
-            if self.Nacc > self.Ndon:
-                nh0 = np.array(majoirty_carrier, dtype=np.float64)
-                ne0 = np.array(ni**2 / majoirty_carrier,
-                               dtype=np.float64)
-            elif self.Ndon > self.Nacc:
-                ne0 = np.array(majoirty_carrier, dtype=np.float64)
-                nh0 = np.array(ni**2 / majoirty_carrier,
-                               dtype=np.float64)
-            else:
-                ne0 = ni
-                nh0 = ni
+        def charges(Ef):
+            ne0, nh0 = ni * np.exp(np.array([Ef, -Ef]) / self.Vt)
             return ne0, nh0
 
-        def possion(majoirty_carrier):
-            ne0, nh0 = charges(majoirty_carrier)
+        def d_charges(Ef):
+            ne0, nh0 = np.array([ni, -ni]) * \
+                np.exp(np.array([Ef, -Ef]) / self.Vt) / self.Vt
+            return ne0, nh0
 
-            Ef = self.Vt * np.log(ne0 / ni)
+        def possion(Ef):
+            ne0, nh0 = charges(Ef)
 
             # this is just a wrapper to set nte, which the following
             # possion function uses
@@ -454,15 +447,52 @@ class Sample():
             for _dft in self.defectlist:
                 defect_charge += _dft.net_charge(Ef, self.temp)
 
-            return self.Ndon - ne0 - self.Nacc + nh0 + defect_charge
+            charge = self.Ndon - ne0 - self.Nacc + nh0 + defect_charge
+            # print('\nsum and individuals for Ef=',
+            # Ef, '{0:.2e}'.format(charge))
+            # print(self.Ndon - ne0 - self.Nacc + nh0 + defect_charge)
+            # print(self.Vt * np.log(abs(self.Ndon - ne0 -
+            #                            self.Nacc + nh0 + defect_charge - 1)))
+            # print(self.Ndon, '{0:.2e}'.format(ne0),
+            #       self.Nacc, '{0:.2e}'.format(nh0), defect_charge)
+            # plt.figure('norm')
+            # plt.plot(Ef, (charge), 'r.')
+            # plt.figure('log')
+            # plt.plot(Ef, np.log(abs((charge)) + 1), 'r.')
+
+            return charge
+
+        def d_possion(Ef):
+            dne0, dnh0 = d_charges(Ef)
+            ne0, nh0 = charges(Ef)
+
+            # this is just a wrapper to set nte, which the following
+            # possion function uses
+            defect_charge = 0
+            d_defect_charge = 0
+            for _dft in self.defectlist:
+                defect_charge = _dft.net_charge(
+                    Ef + 0, self.temp)
+                d_defect_charge += _dft.net_charge(
+                    Ef + 0.0001, self.temp) - _dft.net_charge(
+                    Ef + 0, self.temp)
+
+            # f = self.Ndon - ne0 - self.Nacc + nh0 + defect_charge + 1
+            # fd = -dne0 + dnh0 + d_defect_charge
+            # return fd / f
+
+            return (- dne0 + dnh0 + d_defect_charge)
+
         # This line is to speed up calculations
         # recalculation of ni each time is quite slow.
         ni = self.ni
         # initial guess of majority carrier
-        mjc = newton(possion, abs(self.Nacc - self.Ndon), maxiter=100)
+        # mjc = newton(possion, abs(self.Nacc - self.Ndon), maxiter=100)
 
+        # mjc = newton(possion, x0=Ef, maxiter=200, fprime=d_possion)
+        Ef = toms748(possion, -1, 1)
         # new lets work out the details
-        self.ne0, self.nh0 = charges(mjc)
+        self.ne0, self.nh0 = charges(Ef)
 
         return self.ne0, self.nh0
 
@@ -505,6 +535,43 @@ class Sample():
 
             return ne, nh
 
+        def charges_HD(Ef):
+
+            # if the fermi energy leve is
+            #    negative the holes are the majority carrier
+            if Ef < 0:
+                qEfh = Ef
+                nh = ni * np.exp(-1 * qEfh / self.Vt)
+                ne = self.ne0 + nxc[i]
+                qEfe = self.Vt * np.log(ne / ni)
+
+            # if its bigger than zero the electrons are
+            if Ef > 0:
+                qEfe = Ef
+                ne = ni * np.exp(qEfe / self.Vt)
+                nh = self.nh0 + nxc[i]
+                qEfh = -1 * self.Vt * np.log(nh / ni)
+            return qEfe, qEfh, ne, nh
+
+        def possion_hd(Ef):
+            '''
+            determine the charge neutrality for high defect
+            densities
+
+            '''
+            qEfe, qEfh, ne, nh = charges_HD(Ef)
+
+            # this is just a wrapper to set nte, which the following
+            # possion function uses
+            defect_charge = np.array(0, dtype=np.float64)
+
+            # find the charge of the defects
+            for _dft in self.defectlist:
+                defect_charge += _dft.net_charge([qEfe, qEfh], temp)
+
+            # add up all the charges
+            return self.Ndon - ne - self.Nacc + nh + defect_charge
+
         def possion(mj):
             '''
             determine the charge neutrality
@@ -541,25 +608,47 @@ class Sample():
         temp = self.temp
 
         mj = max(self.ne0, self.nh0)
+        Nd = 0
+        for dft in self.defectlist:
+            Nd += dft.Nd
         # need to do each carrier density individually
-        for i, nxc_i in enumerate(nxc):
-            # initial guess of the number of excess majority carrier
-            # then solve for charge conservation
-            mj = newton(possion, np.array(
-                mj + nxc[i], dtype=np.float64), maxiter=100, tol=1.48e-38)
-            # get the values
-            ne_i, nh_i = charges(mj)
+        # for low defect densities its all easy
+        if Nd < 0.1 * mj:
 
-            # save the values into the array
-            ne[i] = ne_i
-            nh[i] = nh_i
+            for i, nxc_i in enumerate(nxc):
+                # initial guess of the number of excess majority carrier
+                # then solve for charge conservation
+                mj = newton(possion, np.array(
+                    mj + nxc[i], dtype=np.float64), maxiter=100, tol=1.48e-38)
+                # get the values
+                ne_i, nh_i = charges(mj)
 
-            # save the defect concentrations
-            for _dft in self.defectlist:
-                # nd.append(_dft.charge_state_concentration(
-                    # [Vt * np.log(ne_i / ni), -Vt * np.log(nh_i / ni)], temp))
-                nd = np.concatenate((nd, _dft.charge_state_concentration(
-                    [Vt * np.log(ne_i / ni), -Vt * np.log(nh_i / ni)], temp)))
+                # save the values into the array
+                ne[i] = ne_i
+                nh[i] = nh_i
+
+                # save the defect concentrations
+                for _dft in self.defectlist:
+                    # nd.append(_dft.charge_state_concentration(
+                        # [Vt * np.log(ne_i / ni), -Vt * np.log(nh_i / ni)], temp))
+                    nd = np.concatenate((nd, _dft.charge_state_concentration(
+                        [Vt * np.log(ne_i / ni), -Vt * np.log(nh_i / ni)], temp)))
+
+        else:
+            for i, nxc_i in enumerate(nxc):
+
+                Ef = toms748(possion_hd, -1, 1)
+
+                qEfe, qEfh, ne_i, nh_i = charges_HD(Ef)
+                # save the values into the array
+                ne[i] = ne_i
+                nh[i] = nh_i
+
+                # save the defect concentrations
+                for _dft in self.defectlist:
+
+                    nd = np.concatenate((nd, _dft.charge_state_concentration(
+                        [qEfe, qEfh], temp)))
 
         return ne, nh, nd
 
